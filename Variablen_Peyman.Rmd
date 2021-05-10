@@ -1,0 +1,39 @@
+---
+title: "Projekt_Variablen"
+author: "Peyman Farshidfar"
+date: "10 5 2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+```{r}
+
+# Import needed libraries
+library(readr)
+library(lubridate)
+library(ggplot2)
+library(dplyr)
+# Import turnover data
+umsatzdaten <- read_csv("https://raw.githubusercontent.com/opencampus-sh/einfuehrung-in-data-science-und-ml/main/umsatzdaten_gekuerzt.csv")
+wetter <- read_csv("https://raw.githubusercontent.com/opencampus-sh/einfuehrung-in-data-science-und-ml/main/wetter.csv")
+kiwo <- read_csv("https://raw.githubusercontent.com/opencampus-sh/einfuehrung-in-data-science-und-ml/main/kiwo.csv")
+
+
+Daten <- umsatzdaten %>%
+  select(Datum, Warengruppe, Umsatz) %>% 
+  
+  for(datum in kiwo){
+
+  }
+  
+  
+Feiertage
+Schulferien
+wetterBevoelkt
+wetterSonnig
+```
