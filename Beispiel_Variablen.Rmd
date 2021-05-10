@@ -10,3 +10,11 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 
+
+```{r}
+Feiertage
+Schulferien
+wetterBevoelkt
+wetterSonnig
+
+```
