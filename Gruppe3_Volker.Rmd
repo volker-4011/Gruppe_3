@@ -1,0 +1,199 @@
+---
+title: "Gruppe3_Volker"
+output: html_document
+---
+
+```{r}
+# Import needed libraumsatzdatenries
+library(readr)
+library(lubridate)
+library(ggplot2)
+library(plyr)
+library(dplyr)
+library(forcats)
+library(timeDate)
+# Import turnover data
+umsatzdaten <- read_csv("https://raw.githubusercontent.com/opencampus-sh/einfuehrung-in-data-science-und-ml/main/umsatzdaten_gekuerzt.csv")
+wetter <- read_csv("https://raw.githubusercontent.com/opencampus-sh/einfuehrung-in-data-science-und-ml/main/wetter.csv")
+kiwo <- read_csv("https://raw.githubusercontent.com/opencampus-sh/einfuehrung-in-data-science-und-ml/main/kiwo.csv")
+
+# Einlesen der vom DWD heruntergeladenen Wetterdaten für Kiel Holtenau. Einlesen mit read_csv2, da die Daten durch Semikolons getrennt sind.
+wetter_dwd <- read_csv2("wetter_dwd.csv") #https://raw.githubusercontent.com/volker-4011/Gruppe_3/main/wetter_dwd.csv?token=AT5CK6PHA4TDBP62R76YNJLAUACNQ
+
+
+# Dataframe wetter_dwd vorbereiten
+wetter_dwd <- rename(wetter_dwd, Datum = MESS_DATUM)
+wetter_dwd$Datum <- as.Date(wetter_dwd$Datum, "%d.%m.%y")
+wetter_dwd[wetter_dwd==-999.000] <- NA
+#wetter_dwd_short <- data.frame(wetter_dwd$Datum, wetter_dwd$Niederschlagsmenge, wetter_dwd$Sonnenscheindauer , wetter_dwd$Relative_Feuchte)
+
+# Hinzufügen Variable KielerWoche
+fullData <- merge(umsatzdaten,kiwo, by="Datum", all.x = TRUE)
+# Alle NA in KielerWoche durch 0 ersetzen
+fullData$KielerWoche[is.na(fullData$KielerWoche)] <- 0
+# Hinzufügen Dataframe wetter
+fullData <- merge(fullData,wetter, by="Datum")
+# Hinzufügen Dataframe wetter_dwd. Vorher entfernen der nicht benötigten Spalten
+wetter_dwd[ , c('Windspitze',
+                  'Windgeschwindigkeit',
+                  'STATIONS_ID',
+                  'QN_3',
+                  'QN_4',
+                  'Niederschlagsform',
+                  'Schneehoehe',
+                  'Bedeckungsgrad',
+                  'Dampfdruck',
+                  'Luftdruck',
+                  'Temperatur',
+                  'Max-Temperatur',
+                  'Min_Temperatur',
+                  'Min_Temperatur_Boden',
+                  'eor'
+                  )] <- list(NULL)
+fullData <- merge(fullData, wetter_dwd, by='Datum')
+
+# Konvertieren der hinzugefügten Spalten von "Character" zu "numeric"
+fullData$Sonnenscheindauer <- as.numeric(fullData$Sonnenscheindauer)
+fullData$Relative_Feuchte <- as.numeric(fullData$Relative_Feuchte)
+fullData$Niederschlagsmenge <- as.numeric(fullData$Niederschlagsmenge)
+
+# Windchillfaktor berechnen und hinzufügen (gefühlte Temperatur für unteren Temperaturbereich)
+fullData$Windchill <- with(fullData, 13.12+0.6215*Temperatur+(0.3965*Temperatur-11.37)*Windgeschwindigkeit^0.16)
+
+# Extrahieren des Wochentags aus dem Datum und speichern in neuer Variablen
+fullData$Wochentag <- weekdays(fullData$Datum)
+
+# Extrahieren des Monats aus dem Datum und speichern in neuer Variablen
+fullData$Monat <- month(fullData$Datum)
+
+# Hinzufügen neue Variable Wochenende
+fullData$Wochenende <- with(fullData, ifelse(Wochentag=="Sonntag" | Wochentag=="Samstag", 1, 0))
+
+
+
+```
+
+```{r}
+# Gesamtumsatz der Tage über alle Warengruppen
+fullData_gesamt <- aggregate(fullData$Umsatz, by=list(Datum=fullData$Datum), FUN=sum)
+fullData_gesamt <- rename(fullData_gesamt, Tagesgesamtumsatz = x)
+
+# Create variable weekday
+fullData_gesamt$Wochentag <- weekdays(fullData_gesamt$Datum)
+fullData_gesamt$Monat <- month(fullData_gesamt$Datum)
+
+
+```
+
+```{r}
+# Bargraph der mittleren Umsatzdaten nach Wochentag
+
+ggplot(umsatzdaten_gesamt)+
+  geom_bar( aes(x=fct_relevel(Wochentag, "Montag", "Dienstag", "Mittwoch", 
+"Donnerstag", "Freitag", "Samstag","Sonntag"), y = Tagesgesamtumsatz), stat="summary", fun="mean", fill="skyblue")+
+  xlab("Wochentag") + ylab("Mittlerer Umsatz")
+```
+
+```{r}
+## Bargraph der mittleren Umsatzdaten nach Wochentag + Konfidenzintervall 95%
+
+# Mittelwert und Standardabweichung und Konfidenzintervall für 95%  bestimmen
+mean_Wochentag <- fullData_gesamt %>%
+  group_by(Wochentag) %>%
+  summarise( 
+    n=n(),
+    mean=mean(Tagesgesamtumsatz),
+    sd=sd(Tagesgesamtumsatz)
+  ) %>%
+  mutate( se=sd/sqrt(n))  %>%
+  mutate( ic=se * qt((1-0.05)/2 + .5, n-1))
+
+# basic histogram
+ggplot(mean_Wochentag)+
+  geom_bar( aes(x=fct_relevel(Wochentag, "Montag", "Dienstag", "Mittwoch", 
+"Donnerstag", "Freitag", "Samstag","Sonntag"), y = mean), stat="identity", fill="skyblue")+
+  xlab("Wochentag") + ylab("Mittlerer Umsatz")+
+  geom_errorbar( aes(x = Wochentag, ymin = mean-ic, ymax = mean+ic), width=0.4, colour="orange", alpha=0.9, size=1.3)
+
+##Um die Warengruppen einzelnd darzustellen (nebeneinander) facet layer/grid
+```
+
+```{r}
+## Bargraph der mittleren Umsatzdaten nach Monat + Konfidenzintervall 95%
+
+# Mittelwert und Standardabweichung und Konfidenzintervall für 95%  bestimmen
+mean_Monat <- fullData_gesamt %>%
+  group_by(Monat) %>%
+  summarise( 
+    n=n(),
+    mean=mean(Tagesgesamtumsatz),
+    sd=sd(Tagesgesamtumsatz)
+  ) %>%
+  mutate( se=sd/sqrt(n))  %>%
+  mutate( ic=se * qt((1-0.05)/2 + .5, n-1))
+
+# basic histogram
+ggplot(mean_Monat)+
+  geom_bar( aes(x=Monat, y = mean), stat="identity", fill="skyblue")+
+  xlab("Monat") + ylab("Mittlerer Umsatz")+
+  geom_errorbar( aes(x = Monat, ymin = mean-ic, ymax = mean+ic), width=0.4, colour="orange", alpha=0.9, size=1.3)
+```
+
+```{r}
+## Bargraph der mittleren Umsatzdaten nach Bewoelkungsgrad + Konfidenzintervall 95%
+
+# Mittelwert und Standardabweichung und Konfidenzintervall für 95%  bestimmen
+mean_Bewoelkung <- fullData %>%
+  group_by(Bewoelkung) %>%
+  summarise( 
+    n=n(),
+    mean=mean(Umsatz),
+    sd=sd(Umsatz)
+  ) %>%
+  mutate( se=sd/sqrt(n))  %>%
+  mutate( ic=se * qt((1-0.05)/2 + .5, n-1))
+
+# basic histogram
+ggplot(mean_Bewoelkung)+
+  geom_bar( aes(x=Bewoelkung, y = mean), stat="identity", fill="skyblue")+
+  xlab("Bewoelkungsgrad") + ylab("Mittlerer Umsatz")+
+  geom_errorbar( aes(x = Bewoelkung, ymin = mean-ic, ymax = mean+ic), width=0.4, colour="orange", alpha=0.9, size=1.3)
+```
+
+```{r}
+## Bargraph der mittleren Umsatzdaten nach Wettercode + Konfidenzintervall 95%
+
+# Mittelwert und Standardabweichung und Konfidenzintervall für 95%  bestimmen
+mean_Wettercode <- fullData %>%
+  group_by(Wettercode) %>%
+  summarise( 
+    n=n(),
+    mean=mean(Umsatz),
+    sd=sd(Umsatz)
+  ) %>%
+  mutate( se=sd/sqrt(n))  %>%
+  mutate( ic=se * qt((1-0.05)/2 + .5, n-1))
+
+# basic histogram
+ggplot(mean_Wettercode)+
+  geom_bar( aes(x=Wettercode, y = mean), stat="identity", fill="skyblue")+
+  xlab("Wettercode") + ylab("Mittlerer Umsatz")+
+  geom_errorbar( aes(x = Wettercode, ymin = mean-ic, ymax = mean+ic), width=0.4, colour="orange", alpha=0.9, size=1.3)
+```
+
+```{r}
+## Bargraph der mittleren Umsatzdaten nach Sonnenscheindauer + Konfidenzintervall 95%
+
+ggplot(fullData)+
+  geom_bar( aes(x=Sonnenscheindauer, y = Umsatz), stat="summary", fun="mean", fill="skyblue")+
+  xlab("Sonnenscheindauer") + ylab("Mittlerer Umsatz")
+
+```
+
+
+```{r}
+#Lineare Regressionsgleichung
+mod <- lm(Umsatz ~ Warengruppe + as.factor(Monat) + as.factor(Wochentag) + as.factor(Wettercode) + Temperatur + Sonnenscheindauer + Niederschlagsmenge + KielerWoche  + Windchill, fullData) #+ as.factor(Wochentag)
+summary(mod)
+```
+
