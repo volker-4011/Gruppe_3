@@ -41,6 +41,7 @@
                     'Min_Temperatur_Boden',
                     'eor'
     )] <- list(NULL)
+    
     ####################################
 
     #Zusammensetzen der Daten
