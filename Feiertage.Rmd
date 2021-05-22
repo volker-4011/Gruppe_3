@@ -14,24 +14,10 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 
 # Import needed libraries
-library(readr)
-library(lubridate)
-library(ggplot2)
-library(dplyr)
-library(tidyverse)
+source("prep_environment.R")
 # Import turnover data
-umsatzdaten <- read_csv("https://raw.githubusercontent.com/opencampus-sh/einfuehrung-in-data-science-und-ml/main/umsatzdaten_gekuerzt.csv")
-wetter <- read_csv("https://raw.githubusercontent.com/opencampus-sh/einfuehrung-in-data-science-und-ml/main/wetter.csv")
-kiwo <- read_csv("https://raw.githubusercontent.com/opencampus-sh/einfuehrung-in-data-science-und-ml/main/kiwo.csv")
-wetter_dwd <- read_delim("wetter_dwd.csv", delim = ";")
-
-
-fullData <- merge(umsatzdaten,kiwo, by="Datum")
-
-fullData <- merge(fullData,wetter, by="Datum")
-
-
-
+options(timeout= 4000000)
+umsatzdaten_feiertage <- read_csv("https://raw.githubusercontent.com/opencampus-sh/einfuehrung-in-data-science-und-ml/main/umsatzdaten_gekuerzt.csv")
 ```
 ```{r html aus einem String entfernen}
 cleanFun <- function(htmlString) {
@@ -51,7 +37,7 @@ cleanFun <- function(htmlString) {
 #z.B. 2013-07-01  
 #     12345678910
 #substr(umsatzdaten$Datum, 1, 4)
-allYears <- unique(substr(umsatzdaten$Datum, 1, 4))
+allYears <- unique(substr(umsatzdaten_feiertage$Datum, 1, 4))
 
 
 #print(allYears)
@@ -61,31 +47,17 @@ allYears <- unique(substr(umsatzdaten$Datum, 1, 4))
 
 
 
-```{r Daten aus einer Kalender Webseite Teil 2, Installation der Packages}
-install.packages(rvest)
-install.packages(xml2)
-install.packages(stringr)
-install.packages(XML)
-#Hat bei mir nur manuell funktioniert
-```
+`
 
-
-```{r Daten aus einer Kalender Webseite Teil 3, Einbinden der Packages}
-
-library(rvest)
-library(xml2)
-library(stringr) 
-
-```
 
 
 
 
 
 ```{r Feiertage}
+#irgendwas um zu speichern
 
-
-feiertage <- data.frame(matrix(ncol = 3, nrow = 0))
+feiertage <- data.frame(matrix(ncol = 2, nrow = 0))
 for(i in allYears){
   
 
@@ -170,16 +142,19 @@ for(i in rs){
   j = j + 1;
 }
 
-Datum <- as.Date(Datum,format = "%d.%m.%y")
-
-feiertage <- rbind(feiertage,data.frame(Jahr,Datum,Feiertag))
+feiertage <- rbind(feiertage,data.frame(Datum,Feiertag))
 
 }
 
-
+feiertage$Datum <- as.Date(feiertage$Datum, "%d.%m.%Y")
 ```
 
 
+```{r Alle Variablen leeren}
+#Funktioniert nicht..
+#rm(list=ls(type="Values"))
+remove(allYears,Jahr,Datum,Feiertag,i,j,rs,site,string1,string2,test,testJahr, umsatzdaten_feiertage)
 
+```
 
 

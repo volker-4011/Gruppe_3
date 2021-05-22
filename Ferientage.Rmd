@@ -12,24 +12,16 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 ```{r}
-
 # Import needed libraries
 source("prep_environment.R")
 # Import turnover data
 options(timeout= 4000000)
-umsatzdaten <- read_csv("https://raw.githubusercontent.com/opencampus-sh/einfuehrung-in-data-science-und-ml/main/umsatzdaten_gekuerzt.csv")
-wetter <- read_csv("https://raw.githubusercontent.com/opencampus-sh/einfuehrung-in-data-science-und-ml/main/wetter.csv")
-kiwo <- read_csv("https://raw.githubusercontent.com/opencampus-sh/einfuehrung-in-data-science-und-ml/main/kiwo.csv")
-wetter_dwd <- read_delim("wetter_dwd.csv", delim = ";")
-
-
-fullData <- merge(umsatzdaten,kiwo, by="Datum")
-
-fullData <- merge(fullData,wetter, by="Datum")
-
-
-
+umsatzdaten_ferien <- read_csv("https://raw.githubusercontent.com/opencampus-sh/einfuehrung-in-data-science-und-ml/main/umsatzdaten_gekuerzt.csv")
 ```
+
+
+
+
 ```{r html aus einem String entfernen}
 cleanFun <- function(htmlString) {
   return(gsub("<.*?>", "", htmlString))
@@ -48,7 +40,7 @@ cleanFun <- function(htmlString) {
 #z.B. 2013-07-01  
 #     12345678910
 #substr(umsatzdaten$Datum, 1, 4)
-allYears <- unique(substr(umsatzdaten$Datum, 1, 4))
+allYears <- unique(substr(umsatzdaten_ferien$Datum, 1, 4))
 
 
 #print(allYears)
@@ -57,117 +49,119 @@ allYears <- unique(substr(umsatzdaten$Datum, 1, 4))
 ```
 
 
-
-`
-
-
-
-
-
-
-```{r Feiertage}
-#irgendwas um zu speichern
-
-feiertage <- data.frame(matrix(ncol = 2, nrow = 0))
-for(i in allYears){
+```{r Ferien}
+ferientage <- data.frame(matrix(ncol = 2, nrow = 0))
+for(l in allYears){
   
-
-testJahr = i;
-
-site = paste("https://www.schulferien.org/Kalender_mit_Ferien/kalender_",testJahr,"_ferien_Schleswig_Holstein.html");
-
-site = str_replace_all(site," ", "")
-
-print(site);
+site = paste("https://www.ferienkalender.com/ferien_deutschland/Schleswig-Holstein/",l,"-ferien-schleswig-holstein.htm", sep = "")
 test = read_html(site)
 
-
 test <- test %>% 
-  html_nodes(".feiertag_liste") %>%
+  html_nodes(".kasten") %>%
   html_text() %>% 
   .[1]
 
-test = str_replace_all(test,"\n", "")
-
-string1 = str_replace(paste("              ",testJahr)," ", "");
-print(string1)
-
-string2 = str_replace(paste(".",testJahr)," ", "");
-
-print(string2)
-
-test = str_replace_all(test,string1, string2)
-
-test = str_replace_all(test,"                                    ", "")
-test = str_replace_all(test,"   ", "")
-
-test = str_replace_all(test,"Jan", "01")
-test = str_replace_all(test,"Feb", "02")
-test = str_replace_all(test,"Mär", "03")
-test = str_replace_all(test,"Apr", "04")
-test = str_replace_all(test,"Mai", "05")
-test = str_replace_all(test,"Jun", "06")
-test = str_replace_all(test,"Jul", "07")
-test = str_replace_all(test,"Aug", "08")
-test = str_replace_all(test,"Sep", "09")
-test = str_replace_all(test,"Okt", "10")
-test = str_replace_all(test,"Nov", "11")
-test = str_replace_all(test,"Dez", "12")
-
-test = str_replace_all(test,"  ", ";")
-
-print(test)
-
-
-test = str_replace_all(test," ", "")  
+test = str_replace_all(test,"\n", "") 
+test = str_replace_all(test, paste("Ferienkalender Schleswig-Holstein ",l,"Ferien ",l," im deutschen Bundesland Schleswig-Holstein:Winterferien-", sep = ""), "")
 
 
 
-rs <- (test)
-rs = strsplit(rs, split = ";")
-print(rs)
-
-print(typeof(rs))
+test = str_replace_all(test," / Frühjahrsferien", "") 
 
 
-rs <-unlist(rs, use.names=FALSE);
-
-print(rs)
-
-print(test)
+test = str_replace_all(test, paste("Ferien ",l," für Schleswig-Holstein", sep = ""), "") 
 
 
-Datum <- vector();
-Feiertag <- vector();
-Jahr <- vector();
 
-j = 1;
-for(i in rs){
-  if((j %% 2) != 0){
-    Datum <- append(Datum,i);
-    Jahr <- append(Jahr,testJahr);
-  }else{
-    Feiertag <- append(Feiertag,i);
-    
-  }
-  j = j + 1;
+#######################################
+test = str_replace_all(test," - ", "0000") 
+numbers <- str_extract_all(test,"\\(?[0-9,.]+\\)?")[[1]]
+numbers <- paste(numbers, l, sep="")
+numbers = str_replace_all(numbers,"0000", paste(l," Y ", sep = ""))
+
+
+
+year_add <- as.numeric(as.numeric(l)+1)
+
+#######################################
+
+
+#######################################
+characters <- str_extract_all(test,"\\(?[a-zA-Z]+\\)?")[[1]] 
+
+
+print(characters)
+
+length(numbers)
+#######################################
+
+
+k = 1;
+m = 1;
+
+for (j in numbers){
+date <- j 
+
+
+if(m==5){
+  date = str_sub(date,end = -5)
+  date = paste(date, year_add, sep = "")
 }
 
-#Datum <- as.Date(Datum,format = "%d.%m.%y")
 
-feiertage <- rbind(feiertage,data.frame(Datum,Feiertag))
 
+date <- strsplit(date, split = " Y ") 
+
+
+
+
+
+
+
+date <-unlist(date, use.names=FALSE);
+print(date) 
+
+
+
+
+
+
+date <- as.Date(date, "%d.%m.%Y")  
+print(date) 
+
+
+name <- characters[k]
+print(name) 
+
+
+
+
+if(length(date) > 1){
+#date <- seq(as.Date(date[1]), as.Date(date[2]), by="days")
+date <- as.Date(as.Date(date[1]):as.Date(date[2]), origin="1970-01-01")
 }
 
-feiertage$Datum <- as.Date(feiertage$Datum, "%d.%m.%Y")
+
+
+
+ferientage <- rbind(ferientage,data.frame(date,name))
+
+k = k + 1;
+m = m + 1;  
+}
+
+
+}
 ```
 
 
-```{r Alle Variablen leeren}
-#Funktioniert nicht..
-#rm(list=ls(type="Values"))
-remove(allYears,Jahr,Datum,Feiertag,i,j,rs,site,string1,string2,test,testJahr)
 
+
+
+
+
+```{r Alle Variablen leeren}
+remove(allYears,characters,date,j,k,l,m,name,numbers,site,test,year_add,umsatzdaten_ferien)
 ```
 
 
