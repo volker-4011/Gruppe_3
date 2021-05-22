@@ -91,3 +91,12 @@ for(l in allYears){
 }
 
 remove(allYears,characters,Datum,j,k,l,m,Ferien,numbers,site,test,year_add,umsatzdaten_ferien)
+
+ferientage$Ferien <- str_replace_all(ferientage$Ferien, "\\(?[a-zA-Z]+\\)?", "1")
+
+#ferientage <- dplyr::select(ferientage, -contains("2020"))
+#dplyr::select(ferientage, contains('2020')) 
+
+ferientage <- filter(ferientage, Datum <= "2019-12-31")
+
+write.csv(ferientage,"C:\\Users\\Peyman Farshidfar\\Documents\\ferientage.csv")
