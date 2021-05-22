@@ -1,0 +1,78 @@
+---
+title: "Vorlesung_5"
+author: "Peyman Farshidfar"
+date: "11 5 2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+library(readr)
+library(lubridate)
+library(ggplot2)
+library(dplyr)
+library(tidyverse)
+
+
+house_pricing <- read_csv("https://raw.githubusercontent.com/opencampus-sh/einfuehrung-in-data-science-und-ml/main/house_pricing_data/house_pricing_train.csv")
+
+print(house_pricing)
+
+```
+
+
+```{r}
+
+mod <- lm(price ~ sqft_lot15 + as.factor(condition), house_pricing)
+summary(mod)
+```
+
+
+```{r}
+# Import needed libraries
+library(readr)
+library(lubridate)
+library(ggplot2)
+library(dplyr)
+library(tidyverse)
+# Import turnover data
+umsatzdaten <- read_csv("https://raw.githubusercontent.com/opencampus-sh/einfuehrung-in-data-science-und-ml/main/umsatzdaten_gekuerzt.csv")
+wetter <- read_csv("https://raw.githubusercontent.com/opencampus-sh/einfuehrung-in-data-science-und-ml/main/wetter.csv")
+kiwo <- read_csv("https://raw.githubusercontent.com/opencampus-sh/einfuehrung-in-data-science-und-ml/main/kiwo.csv")
+
+
+
+fullData <- merge(umsatzdaten,kiwo, by="Datum")
+
+fullData <- merge(fullData,wetter, by="Datum")
+
+
+
+mod <- lm(Umsatz ~ sqft_lot15 + as.factor(condition), fullData)
+summary(mod)
+```
+
+
+
+
+
+
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
