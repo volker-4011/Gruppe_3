@@ -123,4 +123,13 @@ feiertage$Datum <- as.Date(feiertage$Datum, "%d.%m.%Y")
 remove(allYears,Jahr,Datum,Feiertag,i,j,rs,site,string1,string2,test,testJahr, umsatzdaten_feiertage)
 
 
+feiertage$Feiertag <- str_replace_all(feiertage$Feiertag, "\\(?[a-zA-Z1-9.]+\\)?", "1")
+
+#ferientage <- dplyr::select(ferientage, -contains("2020"))
+#dplyr::select(ferientage, contains('2020')) 
+
+#feiertage <- filter(feiertage, Datum <= "2019-12-31")
+
+write.csv(feiertage,"C:\\Users\\Peyman Farshidfar\\Documents\\feiertage.csv")
+
 
