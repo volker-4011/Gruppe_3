@@ -20,7 +20,8 @@
     #Macht Fehler beim Laden der Daten/ Ursache nicht gefunden. Die einzelnen Dateien laden richtig
     #source("feiertage.R")
     #source("ferientage.R")
-    include("feiertage.R",warn=FALSE)
+    library(memisc)
+    source("feiertage.R")
     include("ferientage.R",warn=FALSE)
     ####################################
     #Bearbeiten der Daten###############
