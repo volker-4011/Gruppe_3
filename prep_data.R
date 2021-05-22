@@ -16,9 +16,12 @@
     wetter <- read_csv(wetter_source)
     kiwo <- read_csv(kiwo_source)
     wetter_dwd <- read_delim(wetter_dwd_source, delim = ";")
+    
     #Macht Fehler beim Laden der Daten/ Ursache nicht gefunden. Die einzelnen Dateien laden richtig
     #source("feiertage.R")
     #source("ferientage.R")
+    include("feiertage.R",warn=FALSE)
+    include("ferientage.R",warn=FALSE)
     ####################################
     #Bearbeiten der Daten###############
     wetter_dwd$MESS_DATUM <- as.Date(wetter_dwd$MESS_DATUM, "%d.%m.%Y")
