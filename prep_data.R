@@ -20,9 +20,9 @@
     #Macht Fehler beim Laden der Daten/ Ursache nicht gefunden. Die einzelnen Dateien laden richtig
     #source("feiertage.R")
     #source("ferientage.R")
-    library(memisc)
-    source("feiertage.R")
-    include("ferientage.R",warn=FALSE)
+    #library(memisc)
+    #source("feiertage.R")
+    #include("ferientage.R",warn=FALSE)
     ####################################
     #Bearbeiten der Daten###############
     wetter_dwd$MESS_DATUM <- as.Date(wetter_dwd$MESS_DATUM, "%d.%m.%Y")
