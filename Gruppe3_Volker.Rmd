@@ -30,6 +30,11 @@ kiwo <- read_csv("https://raw.githubusercontent.com/opencampus-sh/einfuehrung-in
 # Einlesen der vom DWD heruntergeladenen Wetterdaten für Kiel Holtenau. Einlesen mit read_csv2, da die Daten durch Semikolons getrennt sind.
 wetter_dwd <- read_csv2("wetter_dwd.csv") #https://raw.githubusercontent.com/volker-4011/Gruppe_3/main/wetter_dwd.csv?token=AT5CK6PHA4TDBP62R76YNJLAUACNQ
 
+## Vorbereitung für die Vorhersage: Zeilen für alle 6 Warengruppen hinzufügen für den ersten Tag, für den keine Umsatzdaten vorhanden sind
+d <- max(umsatzdaten$Datum)+1
+for(i in 1:6){
+  umsatzdaten <- add_row(umsatzdaten, Datum = d, Warengruppe = i)
+  }
 
 # Dataframe wetter_dwd vorbereiten
 wetter_dwd <- rename(wetter_dwd, Datum = MESS_DATUM)
@@ -42,7 +47,7 @@ fullData <- merge(umsatzdaten,kiwo, by="Datum", all.x = TRUE)
 # Alle NA in KielerWoche durch 0 ersetzen
 fullData$KielerWoche[is.na(fullData$KielerWoche)] <- 0
 # Hinzufügen Dataframe wetter
-fullData <- merge(fullData,wetter, by="Datum")
+fullData <- merge(fullData,wetter, by="Datum", all.x = TRUE)
 # Hinzufügen Dataframe wetter_dwd. Vorher entfernen der nicht benötigten Spalten
 wetter_dwd[ , c('Windspitze',
                   'Windgeschwindigkeit',
@@ -79,8 +84,11 @@ fullData$Monat <- month(fullData$Datum)
 # Hinzufügen neue Variable Wochenende
 fullData$Wochenende <- with(fullData, ifelse(Wochentag=="Sonntag" | Wochentag=="Samstag", 1, 0))
 
+## Abspeichern der Daten für den Tag, der vorhergesagt werden soll in einem neuen Dataframe
+newData <- fullData[fullData$Datum == d, ]
 
-
+## Löschen der Daten für den Tag, der vorhergesagt werden soll aus den Trainingsdaten
+fullData <- subset(fullData, Datum != d)
 ```
 
 ```{r}
@@ -289,7 +297,7 @@ train_dataset <- sample_frac(train_dataset, .10)
 ```{r}
 # Optimization of an SVM with standard hyper parameters
 # Typically NOT used; Instead, the function svm_tune() is used in order to also get a model with optimized hyper parameters
-model_svm <- svm(Umsatz ~ Warengruppe + Wochentag + KielerWoche + Monat, train_dataset)
+model_svm <- svm(Umsatz ~ Warengruppe + Wochentag + KielerWoche + Monat + Bewoelkung, train_dataset) #+ Wochentag + KielerWoche + Monat
 ```
 
 ```{r}
@@ -337,4 +345,12 @@ SVM with hyperparameters tuned via grid search and cross validation
 pred_test <- predict(svm_tune$best.model, test_dataset)
 # Calculating the prediction quality for the test data using the MAPE
 mape(test_dataset$Umsatz, pred_test)
+```
+
+### New Data
+
+SVM with a standard hyperparameters
+```{r}
+# Calculating the prediction for the new data using the best model according to the grid search
+pred_new <- predict(model_svm, newData = newData)
 ```
