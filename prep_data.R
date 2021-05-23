@@ -26,7 +26,7 @@
     ####################################
     #Bearbeiten der Daten###############
     wetter_dwd$MESS_DATUM <- as.Date(wetter_dwd$MESS_DATUM, "%d.%m.%Y")
-    wetter_dwd <- rename(wetter_dwd, Datum = MESS_DATUM)
+    wetter_dwd <- dplyr::rename(wetter_dwd, Datum = MESS_DATUM)
     wetter_dwd[wetter_dwd==-999.000] <- NA
     # Hinzufügen Dataframe wetter_dwd. Vorher entfernen der nicht benötigten Spalten
     wetter_dwd[ , c('Windspitze',
