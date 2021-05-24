@@ -19,7 +19,7 @@ library(readxl)
 
 ```{r import turnover data}
 #import turnover data
-umsatzdaten <- read_csv("https://raw.githubusercontent.com/volker-4011/Gruppe_3/main/umsatzdaten_gekuerzt.csv")
+umsatzdaten <- read_csv("https://raw.githubusercontent.com/opencampus-sh/einfuehrung-in-data-science-und-ml/main/umsatzdaten_gekuerzt.csv")
 
 #get weekday
 umsatzdaten$Wochentag <- weekdays(umsatzdaten$Datum)
@@ -47,14 +47,14 @@ for (e in as.numeric(row.names(umsatzdaten)))
 
 ```{r import kiwo data}
 #import kiwo data
-kiwo <- read_csv("https://raw.githubusercontent.com/volker-4011/Gruppe_3/main/kiwo.csv")
+kiwo <- read_csv("https://raw.githubusercontent.com/opencampus-sh/einfuehrung-in-data-science-und-ml/main/kiwo.csv")
 ```
 
 
 
 ```{r import weather data}
 #import weather data
-wetterdaten <- read_csv("https://raw.githubusercontent.com/volker-4011/Gruppe_3/main/wetter.csv")
+wetterdaten <- read_csv("https://raw.githubusercontent.com/opencampus-sh/einfuehrung-in-data-science-und-ml/main/wetter.csv")
 
 #import weathercodes
 #URL weather codes https://www.seewetter-kiel.de/seewetter/daten_symbole.htm
