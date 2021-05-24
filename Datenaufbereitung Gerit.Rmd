@@ -1,0 +1,279 @@
+---
+title: "Datenaufbereitung"
+author: "g3r!t"
+date: "4 5 2021"
+output: powerpoint_presentation
+---
+
+```{r import libraries}
+# Import needed libraries
+library(ggplot2)
+library(readr)
+library(lubridate)
+library(dplyr)
+library(forcats)
+library(RCurl)
+library(readxl)
+library(e1071)
+```
+
+
+```{r import turnover data}
+#import turnover data
+umsatzdaten <- read_csv("https://raw.githubusercontent.com/opencampus-sh/einfuehrung-in-data-science-und-ml/main/umsatzdaten_gekuerzt.csv")
+
+#get weekday
+umsatzdaten$Wochentag <- weekdays(umsatzdaten$Datum)
+
+#create boolean value for weekend/workday 1/0
+for (e in as.numeric(row.names(umsatzdaten))) {  
+  if (umsatzdaten$Wochentag[e] == "Samstag") {
+    umsatzdaten$Wochenende[e] <- 1
+  } else if (umsatzdaten$Wochentag[e] =="Sonntag") {
+    umsatzdaten$Wochenende[e] <- 1
+  } else {
+    umsatzdaten$Wochenende[e] <- 0
+  }
+}
+
+# Convert ware group number into ware group name
+# 1=Brot, 2=Broetchen, 3=Crossaint, 4=Konditorei, 5=Kuchen, 6=Saisonbrot
+Warengruppen <- c("Brot", "Brötchen", "Crossaint", "Konditorei", "Kuchen", "Saisonbrot")
+for (e in as.numeric(row.names(umsatzdaten)))
+  umsatzdaten$Warengruppe[e] <- Warengruppen[as.numeric(umsatzdaten$Warengruppe[e])]
+```
+
+
+
+
+```{r import kiwo data}
+#import kiwo data
+kiwo <- read_csv("https://raw.githubusercontent.com/opencampus-sh/einfuehrung-in-data-science-und-ml/main/kiwo.csv")
+```
+
+
+
+```{r import weather data}
+#import weather data
+wetterdaten <- read_csv("https://raw.githubusercontent.com/opencampus-sh/einfuehrung-in-data-science-und-ml/main/wetter.csv")
+
+#import weathercodes
+#URL weather codes https://www.seewetter-kiel.de/seewetter/daten_symbole.htm
+#wind speed in knots[kn = sm/h = (km/h)/1.852]
+wettercodes <- read_delim("https://raw.githubusercontent.com/g3r1t/EDSML-Projekt/main/Wettercodes.csv", 
+    ";", escape_double = FALSE, trim_ws = TRUE)
+
+# Change column-name of "Code" to "Wettercode"
+colnames(wettercodes)[colnames(wettercodes) == "Code"] <- "Wettercode"
+
+#windchill berechnen (https://de.wikipedia.org/wiki/Windchill)
+for (e in as.numeric(row.names(wetterdaten)))
+  wetterdaten$Windchill[e] <- 13.12 + 0.6215 * wetterdaten$Temperatur[e] - 11.37 * 
+                              (wetterdaten$Windgeschwindigkeit[e]*1.852)**0.16 + 
+                              0.3965*wetterdaten$Temperatur[e] * 
+                              (wetterdaten$Windgeschwindigkeit[e]*1.852)**0.16
+
+#windchill vs Hitzeindex zum faktorisieren
+```
+
+
+```{r import overnight stay data}
+#The required data is saved in the form of *.xlsx sheets at https://www.statistik-nord.de/fileadmin/Dokumente/Statistische_Berichte/industrie__handel_und_dienstl/G_IV_1_m_S/G_IV_1-m1506_SH.xlsx 
+#in this case for the month of June of the year 2016 indicated by "1506". In theory only this four digit code changes. For 78 of the 84 months
+#that we are interested in, this statement is true. More about that later. The conclusion drawn from this means: First we need to create a vector
+#containing all four digit "month-year-codes" for the desired months.
+
+#Create vector of all month numbers in double digits
+months <- c("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12")
+#create vector of all years of "umsatzdaten"
+years <- as.character(13:19)
+
+
+#create vector "JahrMonat" from vectors "months" and "years" containing all combinations of "years" and "months"
+for (e in years)
+  if (e == "13") {
+    JahrMonat <- paste(e, months, sep = "")
+  } else {
+    a <- paste(e, months, sep = "")
+    JahrMonat <- c(JahrMonat, a)
+  }
+
+#This for-loop iterates through every element of the vector "JahrMonat" pasting it into the URL. In every iteration it therefore downloads the
+#next *.xlsx sheet. This statement is true for most of the sheets. Unfortunately for 7 of the 84 sheets the person overseeing the upload has
+#made some typos and thereby almost made me loose my sanity bcs I had to figure out the exact typos made for each download error. So for 77 of the 84 #cases only the lines 80-83 and 105-111 are needed. Lines 85-101 are only needed to catch the typo-sheets ¯\_(ツ)_/¯
+
+Uebernachtungen <- ""
+for (e in JahrMonat) {
+  filename <- paste("G_IV_1-m",e,"_SH.xlsx", sep = "")
+  url <- paste(
+    "https://www.statistik-nord.de/fileadmin/Dokumente/Statistische_Berichte/industrie__handel_und_dienstl/G_IV_1_m_S/", filename, sep = "")
+  if (url.exists(url=url)) {
+    filedest <- paste("sheets/", filename, sep = "")
+    curl::curl_download(url, filedest)
+    xls <- read_excel(filedest, sheet = "T1_1")
+    Uebernachtungen <- c(Uebernachtungen, xls[4][xls[1] == "02 Kiel"])
+  } else {
+      filename <- paste("G_IV_1-m",e,"_SH-.xlsx", sep = "")
+      url <- paste(
+        "https://www.statistik-nord.de/fileadmin/Dokumente/Statistische_Berichte/industrie__handel_und_dienstl/G_IV_1_m_S/", filename, sep="")
+      if (!url.exists(url=url)) {
+        filename <- paste("G_IV_1_m_S_",e,".xlsx", sep = "")
+        url <- paste(
+          "https://www.statistik-nord.de/fileadmin/Dokumente/Statistische_Berichte/industrie__handel_und_dienstl/G_IV_1_m_S/", filename, sep = "")
+        if (!url.exists(url=url)) {
+          filename <- paste("G_IV_1_m",e,"_SH.xlsx", sep = "")
+          url <- paste(
+            "https://www.statistik-nord.de/fileadmin/Dokumente/Statistische_Berichte/industrie__handel_und_dienstl/G_IV_1_m_S/", filename, sep = "")
+        }
+      }
+      #declare file destination to be inside folder "sheets"
+      filedest <- paste("sheets/", filename, sep = "")
+      #download file from "url" into "filedest"
+      curl::curl_download(url, filedest)
+      #import only sheet "T1_1" from file "filename" into variable xls
+      xls <- read_excel(filedest, sheet = "T1_1")
+      #extract only overnight stays for kiel from xls and concatenate it with the former vector "Uebernachtungen"
+      Uebernachtungen <- c(Uebernachtungen, xls[4][xls[1] == "02 Kiel"])
+    }
+}
+#remove the empty string used to declare "Ubernachtungen" initially and convert "Uebernachtungen from a vector of strings to a vector of numerics
+Uebernachtungen <- as.numeric(Uebernachtungen[-1])
+
+#create common dataframe for "Uebernachtungen" and "JahrMonat"
+Uebernachtungen <- data.frame("Monatscode"=JahrMonat, "Uebernachtungen"=Uebernachtungen)
+
+
+
+# Spannweite der Übernachtungszahlen in Abhängigkeit vom Mittelwert ermitteln (hier muss noch aggregiert werden!14.05.2021, SBo)
+mean_Uebernachtungen <- mean(Uebernachtungen$Uebernachtungen)
+span_Uebernachtungen = (max(Uebernachtungen$Uebernachtungen) - min(Uebernachtungen$Uebernachtungen))/mean_Uebernachtungen
+
+B <- mean_Uebernachtungen
+C <- mean_Uebernachtungen * span_Uebernachtungen
+A <- mean_Uebernachtungen * 1/span_Uebernachtungen
+
+# Kategorisierung der Übernachtungszahlen 
+
+for (e in as.numeric(row.names(Uebernachtungen))) {
+  if (Uebernachtungen$Uebernachtungen[e] <= A) {
+    Uebernachtungen$Kategorie[e] <- "niedrig"
+  } else if (Uebernachtungen$Uebernachtungen[e] < C) {
+    Uebernachtungen$Kategorie[e] <- "mittel"
+  } else if (Uebernachtungen$Uebernachtungen[e] >= C) {
+      Uebernachtungen$Kategorie[e] <- "hoch"
+    }
+}
+Uebernachtungen$Kategorie <- as.factor(Uebernachtungen$Kategorie)
+```
+
+```{r import holiday data}
+#import holiday data
+feiertage_sh <- read_delim("https://raw.githubusercontent.com/g3r1t/EDSML-Projekt/main/feiertage_sh.csv.csv", 
+                               ";", escape_double = FALSE, trim_ws = TRUE)
+
+#Delete colum Bundesland
+feiertage_sh[3] <-NULL
+
+#Convert Date to date format
+feiertage_sh$Tag <- dmy(feiertage_sh$Tag)
+names(feiertage_sh)[names(feiertage_sh) == "Tag"] <- "Datum"
+names(feiertage_sh)[names(feiertage_sh) == "Feiertage"] <- "Feiertagsname"
+```
+
+
+```{r merge datasets}
+#merge datasets
+KiwoUndUmsatz <- full_join(umsatzdaten, kiwo, by = "Datum")
+
+# convert NAs for KiWo to 0s
+KiwoUndUmsatz$KielerWoche[is.na(KiwoUndUmsatz$KielerWoche)] <- 0
+
+Alles <- full_join(KiwoUndUmsatz, wetterdaten, by = "Datum")
+Alles <- left_join(Alles, wettercodes, by = "Wettercode")
+
+#merge over night stays with "Alles"
+#create column of "Monatscode" for each date of "Alles" to full_join() by "Monatscode"
+for (e in as.numeric(row.names(Alles))) {
+  Alles$Monatscode[e] <- paste(
+  (year(Alles$Datum[e])-2000),
+  formatC(month(Alles$Datum[e]), width = 2, format = "d", flag = "0"), sep = "")
+}
+Alles <- full_join(Alles, Uebernachtungen, by = "Monatscode")
+
+#merge feiertage_sh with "Alles"
+Alles <- full_join(Alles,feiertage_sh, by = "Datum")
+
+#create boolean value for "weekend/workday"Feiertag" 1/0
+for (e in as.numeric(row.names(Alles))) {
+  if (is.na(Alles$Feiertagsname[e])) {
+    Alles$Feiertag[e] <- 0
+  } else {
+    Alles$Feiertag[e] <- 1
+  }
+}
+```
+
+```{r somewhat analyzed xD}
+#ein bisschen code aus der Vorlesung
+mod1 <- lm(Umsatz ~ Kategorie, Alles)
+summary(mod1)
+
+mod2 <- lm(Umsatz ~ Windchill, Alles)
+summary(mod2)
+
+mod3 <- lm(Umsatz ~ as.factor(Wochenende), Alles)
+summary(mod3)
+
+mod4 <- lm(Umsatz ~ as.factor(KielerWoche), Alles)
+summary(mod4)
+
+mod5 <- lm(Umsatz ~ as.factor(Feiertag), Alles)
+summary(mod5)
+
+mod6 <- lm(Umsatz ~ Kategorie + Windchill + as.factor(Feiertag) + as.factor(Wochenende) + as.factor(KielerWoche), Alles)
+summary(mod6)
+
+mod7 <- lm(Umsatz ~ Kategorie + Windchill + as.factor(Feiertag) + as.factor(Wochenende) + as.factor(KielerWoche) + as.factor(Warengruppe) , Alles)
+summary(mod7)
+
+
+```
+## predicton example:
+
+predict(Alles)
+
+## Vorab müssen noch Ausreißer eliminiert werden!!!
+
+
+## Splitting Training and Test Data
+
+```{r}
+# Setting the random counter to a fixed value, so the random initialization stays the same (the random split is always the same)
+set.seed(1)
+# Shuffling the dataset (to get random orders within each dataset as well)
+new_row_order <- sample(nrow(Alles))
+Alles <- Alles[new_row_order, ]
+# Assign each row number in the full dataset randomly to one of the three groups of datasets
+# The probability of being in one of the groups results then in crresponding group sizes
+assignment <- sample(1:2, size = nrow(Alles), prob = c(.9, .1), replace = TRUE)
+# Create training and test datasets
+train_dataset <- Alles[assignment == 1, ]  # subset Alles to training indices only
+test_dataset <- Alles[assignment == 2, ]  # subset Alles to test indices only
+```
+
+## Data Preparation
+
+```{r}
+  # Cut small part of the training data set (for saving computational time)
+train_dataset <- sample_frac(train_dataset, .10)
+```
+
+# SVM training
+```{r}
+
+# Optimization of various SVM using systematically varied hyper parameters (typically called 'grid search' approach) and cross validation
+# the resulting object includes the optimal model in the element named 'best.model'
+# svm_tune <- tune(svm, formula = Umsatz ~ Kategorie + Windchill + as.factor(Feiertag) + 
+ #   as.factor(Wochenende) + as.factor(KielerWoche) + as.factor(Warengruppe), 
+ #   data = Alles)
+```
