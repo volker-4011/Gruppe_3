@@ -17,8 +17,11 @@
     wetter <- read_csv(wetter_source)
     kiwo <- read_csv(kiwo_source)
     wetter_dwd <- read_delim(wetter_dwd_source, delim = ";")
-    ferientage <- read_csv("ferientage.csv")
-    feiertage <- read_csv("feiertage.csv")
+    #ferientage <- read_csv("ferientage.csv")
+    #feiertage <- read_csv("feiertage.csv")
+    
+    source("ferientage.R", encoding = "UTF-8")
+    source("feiertage.R", encoding = "UTF-8")
     
     #Macht Fehler beim Laden der Daten/ Ursache nicht gefunden. Die einzelnen Dateien laden richtig
     #source("feiertage.R")
