@@ -10,7 +10,7 @@
     umsatzdaten_source = "https://raw.githubusercontent.com/opencampus-sh/einfuehrung-in-data-science-und-ml/main/umsatzdaten_gekuerzt.csv"
     wetter_source = "https://raw.githubusercontent.com/opencampus-sh/einfuehrung-in-data-science-und-ml/main/wetter.csv"
     kiwo_source = "https://raw.githubusercontent.com/opencampus-sh/einfuehrung-in-data-science-und-ml/main/kiwo.csv"
-    wetter_dwd_source = "wetter_dwd.csv" #Nur Local
+    wetter_dwd_source = "https://raw.githubusercontent.com/volker-4011/Gruppe_3/main/wetter_dwd.csv" #Nur Local
     
     #Laden der Dateien##################
     umsatzdaten <- read_csv(umsatzdaten_source)
@@ -20,8 +20,8 @@
     #ferientage <- read_csv("ferientage.csv")
     #feiertage <- read_csv("feiertage.csv")
     
-    source("ferientage.R", encoding = "UTF-8")
-    source("feiertage.R", encoding = "UTF-8")
+    source("https://raw.githubusercontent.com/volker-4011/Gruppe_3/main/ferientage.R", encoding = "UTF-8")
+    source("https://raw.githubusercontent.com/volker-4011/Gruppe_3/main/feiertage.R", encoding = "UTF-8")
     
     #Macht Fehler beim Laden der Daten/ Ursache nicht gefunden. Die einzelnen Dateien laden richtig
     #source("feiertage.R")
@@ -57,6 +57,10 @@
 
     #Zusammensetzen der Daten
     fullData <- merge(umsatzdaten,wetter, by="Datum", all.x = TRUE)
+    
+    
+    
+    
     fullData <- merge(fullData,kiwo, by="Datum", all.x = TRUE)
     #fullData <- merge(fullData,feiertage, by="Datum", all.x = TRUE)
     #fullData <- merge(fullData,ferientage, by="Datum", all.x = TRUE)
