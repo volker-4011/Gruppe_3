@@ -50,15 +50,8 @@
 
     #Zusammensetzen der Daten
     fullData <- merge(umsatzdaten,wetter, by="Datum", all.x = TRUE)
-    
-    
-    
-    
     fullData <- merge(fullData,kiwo, by="Datum", all.x = TRUE)
-    #fullData <- merge(fullData,feiertage, by="Datum", all.x = TRUE)
-    #fullData <- merge(fullData,ferientage, by="Datum", all.x = TRUE)
     fullData <- merge(fullData,wetter_dwd, by="Datum", all.x = TRUE)
-    #fullData <- merge(x=fullData, y=wetter_dwd, by.x="Datum", by.y="MESS_DATUM", x.all=FALSE, y.all=FALSE)
     fullData <- merge(fullData,ferientage, by="Datum", all.x = TRUE)
     fullData <- merge(fullData,feiertage, by="Datum", all.x = TRUE)
     #########################
