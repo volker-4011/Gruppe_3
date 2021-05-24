@@ -130,6 +130,6 @@ feiertage$Feiertag <- str_replace_all(feiertage$Feiertag, "\\(?[a-zA-Z1-9.]+\\)?
 
 #feiertage <- filter(feiertage, Datum <= "2019-12-31")
 
-write.csv(feiertage,"C:\\Users\\Peyman Farshidfar\\Documents\\feiertage.csv")
+#write.csv(feiertage,"C:\\Users\\Peyman Farshidfar\\Documents\\feiertage.csv")
 
 
