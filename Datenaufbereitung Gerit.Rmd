@@ -14,13 +14,12 @@ library(dplyr)
 library(forcats)
 library(RCurl)
 library(readxl)
-library(e1071)
 ```
 
 
 ```{r import turnover data}
 #import turnover data
-umsatzdaten <- read_csv("https://raw.githubusercontent.com/opencampus-sh/einfuehrung-in-data-science-und-ml/main/umsatzdaten_gekuerzt.csv")
+umsatzdaten <- read_csv("https://raw.githubusercontent.com/volker-4011/Gruppe_3/main/umsatzdaten_gekuerzt.csv")
 
 #get weekday
 umsatzdaten$Wochentag <- weekdays(umsatzdaten$Datum)
@@ -48,19 +47,19 @@ for (e in as.numeric(row.names(umsatzdaten)))
 
 ```{r import kiwo data}
 #import kiwo data
-kiwo <- read_csv("https://raw.githubusercontent.com/opencampus-sh/einfuehrung-in-data-science-und-ml/main/kiwo.csv")
+kiwo <- read_csv("https://raw.githubusercontent.com/volker-4011/Gruppe_3/main/kiwo.csv")
 ```
 
 
 
 ```{r import weather data}
 #import weather data
-wetterdaten <- read_csv("https://raw.githubusercontent.com/opencampus-sh/einfuehrung-in-data-science-und-ml/main/wetter.csv")
+wetterdaten <- read_csv("https://raw.githubusercontent.com/volker-4011/Gruppe_3/main/wetter.csv")
 
 #import weathercodes
 #URL weather codes https://www.seewetter-kiel.de/seewetter/daten_symbole.htm
 #wind speed in knots[kn = sm/h = (km/h)/1.852]
-wettercodes <- read_delim("https://raw.githubusercontent.com/g3r1t/EDSML-Projekt/main/Wettercodes.csv", 
+wettercodes <- read_delim("https://raw.githubusercontent.com/volker-4011/Gruppe_3/main/Wettercodes.csv", 
     ";", escape_double = FALSE, trim_ws = TRUE)
 
 # Change column-name of "Code" to "Wettercode"
@@ -69,9 +68,9 @@ colnames(wettercodes)[colnames(wettercodes) == "Code"] <- "Wettercode"
 #windchill berechnen (https://de.wikipedia.org/wiki/Windchill)
 for (e in as.numeric(row.names(wetterdaten)))
   wetterdaten$Windchill[e] <- 13.12 + 0.6215 * wetterdaten$Temperatur[e] - 11.37 * 
-                              (wetterdaten$Windgeschwindigkeit[e]*1.852)**0.16 + 
+                              (wetterdaten$Windgeschwindigkeit[e]*(60/1000))**0.16 + 
                               0.3965*wetterdaten$Temperatur[e] * 
-                              (wetterdaten$Windgeschwindigkeit[e]*1.852)**0.16
+                              (wetterdaten$Windgeschwindigkeit[e]*(60/1000))**0.16
 
 #windchill vs Hitzeindex zum faktorisieren
 ```
@@ -141,43 +140,6 @@ Uebernachtungen <- as.numeric(Uebernachtungen[-1])
 
 #create common dataframe for "Uebernachtungen" and "JahrMonat"
 Uebernachtungen <- data.frame("Monatscode"=JahrMonat, "Uebernachtungen"=Uebernachtungen)
-
-
-
-# Spannweite der Übernachtungszahlen in Abhängigkeit vom Mittelwert ermitteln (hier muss noch aggregiert werden!14.05.2021, SBo)
-mean_Uebernachtungen <- mean(Uebernachtungen$Uebernachtungen)
-span_Uebernachtungen = (max(Uebernachtungen$Uebernachtungen) - min(Uebernachtungen$Uebernachtungen))/mean_Uebernachtungen
-
-B <- mean_Uebernachtungen
-C <- mean_Uebernachtungen * span_Uebernachtungen
-A <- mean_Uebernachtungen * 1/span_Uebernachtungen
-
-# Kategorisierung der Übernachtungszahlen 
-
-for (e in as.numeric(row.names(Uebernachtungen))) {
-  if (Uebernachtungen$Uebernachtungen[e] <= A) {
-    Uebernachtungen$Kategorie[e] <- "niedrig"
-  } else if (Uebernachtungen$Uebernachtungen[e] < C) {
-    Uebernachtungen$Kategorie[e] <- "mittel"
-  } else if (Uebernachtungen$Uebernachtungen[e] >= C) {
-      Uebernachtungen$Kategorie[e] <- "hoch"
-    }
-}
-Uebernachtungen$Kategorie <- as.factor(Uebernachtungen$Kategorie)
-```
-
-```{r import holiday data}
-#import holiday data
-feiertage_sh <- read_delim("https://raw.githubusercontent.com/g3r1t/EDSML-Projekt/main/feiertage_sh.csv.csv", 
-                               ";", escape_double = FALSE, trim_ws = TRUE)
-
-#Delete colum Bundesland
-feiertage_sh[3] <-NULL
-
-#Convert Date to date format
-feiertage_sh$Tag <- dmy(feiertage_sh$Tag)
-names(feiertage_sh)[names(feiertage_sh) == "Tag"] <- "Datum"
-names(feiertage_sh)[names(feiertage_sh) == "Feiertage"] <- "Feiertagsname"
 ```
 
 
@@ -199,9 +161,6 @@ for (e in as.numeric(row.names(Alles))) {
   formatC(month(Alles$Datum[e]), width = 2, format = "d", flag = "0"), sep = "")
 }
 Alles <- full_join(Alles, Uebernachtungen, by = "Monatscode")
-
-#merge feiertage_sh with "Alles"
-Alles <- full_join(Alles,feiertage_sh, by = "Datum")
 
 #create boolean value for "weekend/workday"Feiertag" 1/0
 for (e in as.numeric(row.names(Alles))) {
@@ -235,45 +194,4 @@ summary(mod6)
 
 mod7 <- lm(Umsatz ~ Kategorie + Windchill + as.factor(Feiertag) + as.factor(Wochenende) + as.factor(KielerWoche) + as.factor(Warengruppe) , Alles)
 summary(mod7)
-
-
-```
-## predicton example:
-
-predict(Alles)
-
-## Vorab müssen noch Ausreißer eliminiert werden!!!
-
-
-## Splitting Training and Test Data
-
-```{r}
-# Setting the random counter to a fixed value, so the random initialization stays the same (the random split is always the same)
-set.seed(1)
-# Shuffling the dataset (to get random orders within each dataset as well)
-new_row_order <- sample(nrow(Alles))
-Alles <- Alles[new_row_order, ]
-# Assign each row number in the full dataset randomly to one of the three groups of datasets
-# The probability of being in one of the groups results then in crresponding group sizes
-assignment <- sample(1:2, size = nrow(Alles), prob = c(.9, .1), replace = TRUE)
-# Create training and test datasets
-train_dataset <- Alles[assignment == 1, ]  # subset Alles to training indices only
-test_dataset <- Alles[assignment == 2, ]  # subset Alles to test indices only
-```
-
-## Data Preparation
-
-```{r}
-  # Cut small part of the training data set (for saving computational time)
-train_dataset <- sample_frac(train_dataset, .10)
-```
-
-# SVM training
-```{r}
-
-# Optimization of various SVM using systematically varied hyper parameters (typically called 'grid search' approach) and cross validation
-# the resulting object includes the optimal model in the element named 'best.model'
-# svm_tune <- tune(svm, formula = Umsatz ~ Kategorie + Windchill + as.factor(Feiertag) + 
- #   as.factor(Wochenende) + as.factor(KielerWoche) + as.factor(Warengruppe), 
- #   data = Alles)
 ```
