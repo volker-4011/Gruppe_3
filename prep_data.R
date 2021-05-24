@@ -54,24 +54,6 @@
     
     ####################################
     
-    
-    
-    #Vorschlag: Optimierung der Daten
-    
-    fullData$Umsatz <- round(fullData$Umsatz) #Dezimalstellen wenig sinvoll, besser Runden
-    fullData$KielerWoche[is.na(fullData$KielerWoche)] <- 0 #Entweder Kieler-Woche oder "nicht = 0"
-    fullData$Ferien[is.na(fullData$Ferien)] <- 0 #Entweder Ferien oder "nicht = 0"
-    fullData$Feiertag[is.na(fullData$Feiertag)] <- 0 #Entweder Feiertag oder "nicht = 0"
-    
-    #Vorschlag: Optimierung der Daten 
-    
-    
-    
-    
-    
-    
-    
-    
 
     #Zusammensetzen der Daten
     fullData <- merge(umsatzdaten,wetter, by="Datum", all.x = TRUE)
@@ -83,5 +65,15 @@
     fullData <- merge(fullData,ferientage, by="Datum", all.x = TRUE)
     fullData <- merge(fullData,feiertage, by="Datum", all.x = TRUE)
     #########################
+    
+    
+    #Vorschlag: Optimierung der Daten
+    
+    fullData$Umsatz <- round(fullData$Umsatz) #Dezimalstellen wenig sinvoll, besser Runden
+    fullData$KielerWoche[is.na(fullData$KielerWoche)] <- 0 #Entweder Kieler-Woche oder "nicht = 0"
+    fullData$Ferien[is.na(fullData$Ferien)] <- 0 #Entweder Ferien oder "nicht = 0"
+    fullData$Feiertag[is.na(fullData$Feiertag)] <- 0 #Entweder Feiertag oder "nicht = 0"
+    
+    #Vorschlag: Optimierung der Daten 
 
   ####################################################################################################################################
