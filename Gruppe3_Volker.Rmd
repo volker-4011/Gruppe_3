@@ -12,18 +12,33 @@ library(plyr)
 library(dplyr)
 library(forcats)
 library(timeDate)
+library(e1071)
+library(Metrics)
 # Import turnover data
 umsatzdaten <- read_csv("https://raw.githubusercontent.com/opencampus-sh/einfuehrung-in-data-science-und-ml/main/umsatzdaten_gekuerzt.csv")
 wetter <- read_csv("https://raw.githubusercontent.com/opencampus-sh/einfuehrung-in-data-science-und-ml/main/wetter.csv")
 kiwo <- read_csv("https://raw.githubusercontent.com/opencampus-sh/einfuehrung-in-data-science-und-ml/main/kiwo.csv")
 
+## Warengruppen:
+#1  Brot
+#2  Brötchen
+#3  Croissant
+#4  Konditorei
+#5  Kuchen
+#6  Saisonbrot
+
 # Einlesen der vom DWD heruntergeladenen Wetterdaten für Kiel Holtenau. Einlesen mit read_csv2, da die Daten durch Semikolons getrennt sind.
 wetter_dwd <- read_csv2("wetter_dwd.csv") #https://raw.githubusercontent.com/volker-4011/Gruppe_3/main/wetter_dwd.csv?token=AT5CK6PHA4TDBP62R76YNJLAUACNQ
 
+## Vorbereitung für die Vorhersage: Zeilen für alle 6 Warengruppen hinzufügen für den ersten Tag, für den keine Umsatzdaten vorhanden sind
+d <- max(umsatzdaten$Datum)+1
+for(i in 1:6){
+  umsatzdaten <- add_row(umsatzdaten, Datum = d, Warengruppe = i)
+  }
 
 # Dataframe wetter_dwd vorbereiten
 wetter_dwd <- rename(wetter_dwd, Datum = MESS_DATUM)
-wetter_dwd$Datum <- as.Date(wetter_dwd$Datum, "%d.%m.%y")
+wetter_dwd$Datum <- as.Date(wetter_dwd$Datum, "%d.%m.%Y")
 wetter_dwd[wetter_dwd==-999.000] <- NA
 #wetter_dwd_short <- data.frame(wetter_dwd$Datum, wetter_dwd$Niederschlagsmenge, wetter_dwd$Sonnenscheindauer , wetter_dwd$Relative_Feuchte)
 
@@ -32,7 +47,7 @@ fullData <- merge(umsatzdaten,kiwo, by="Datum", all.x = TRUE)
 # Alle NA in KielerWoche durch 0 ersetzen
 fullData$KielerWoche[is.na(fullData$KielerWoche)] <- 0
 # Hinzufügen Dataframe wetter
-fullData <- merge(fullData,wetter, by="Datum")
+fullData <- merge(fullData,wetter, by="Datum", all.x = TRUE)
 # Hinzufügen Dataframe wetter_dwd. Vorher entfernen der nicht benötigten Spalten
 wetter_dwd[ , c('Windspitze',
                   'Windgeschwindigkeit',
@@ -69,8 +84,11 @@ fullData$Monat <- month(fullData$Datum)
 # Hinzufügen neue Variable Wochenende
 fullData$Wochenende <- with(fullData, ifelse(Wochentag=="Sonntag" | Wochentag=="Samstag", 1, 0))
 
+## Abspeichern der Daten für den Tag, der vorhergesagt werden soll in einem neuen Dataframe
+newData <- fullData[fullData$Datum == d, ]
 
-
+## Löschen der Daten für den Tag, der vorhergesagt werden soll aus den Trainingsdaten
+fullData <- subset(fullData, Datum != d)
 ```
 
 ```{r}
@@ -88,10 +106,58 @@ fullData_gesamt$Monat <- month(fullData_gesamt$Datum)
 ```{r}
 # Bargraph der mittleren Umsatzdaten nach Wochentag
 
-ggplot(umsatzdaten_gesamt)+
+ggplot(fullData_gesamt)+
   geom_bar( aes(x=fct_relevel(Wochentag, "Montag", "Dienstag", "Mittwoch", 
 "Donnerstag", "Freitag", "Samstag","Sonntag"), y = Tagesgesamtumsatz), stat="summary", fun="mean", fill="skyblue")+
   xlab("Wochentag") + ylab("Mittlerer Umsatz")
+```
+
+```{r}
+# Bargraph der mittleren Umsatzdaten nach Wochentag pro Warengruppe
+
+ggplot(fullData)+
+  geom_bar( aes(x = fct_relevel(Wochentag, "Montag", "Dienstag", "Mittwoch", 
+"Donnerstag", "Freitag", "Samstag","Sonntag"), y = Umsatz), stat="summary", fun="mean", fill="skyblue")+
+  xlab("Jahr") + ylab("Mittlerer Umsatz")+
+  facet_wrap(~Warengruppe , scales="free")
+  #+ylim(0,1000)
+```
+
+```{r}
+# Bargraph der mittleren Umsatzdaten nach Wochentag pro Warengruppe
+
+ggplot(fullData)+
+  geom_bar( aes(x = KielerWoche, y = Umsatz), stat="summary", fun="mean", fill="skyblue")+
+  xlab("Kieler Woche") + ylab("Mittlerer Umsatz")+
+  facet_wrap(~Warengruppe , scales="free")
+  #+ylim(0,1000)
+```
+
+```{r}
+# Bargraph der mittleren Umsatzdaten nach Zeit
+
+ggplot(fullData_gesamt)+
+  geom_bar( aes(x = Datum, y = Tagesgesamtumsatz), stat="summary", fun="mean", fill="skyblue")+  #
+  xlab("Jahr") + ylab("Mittlerer Umsatz")
+  
+```
+
+```{r}
+# Bargraph der mittleren Umsatzdaten nach Zeit pro Warengruppe Brot
+
+ggplot(fullData[fullData$Warengruppe == 4,])+
+  geom_bar( aes(x = Datum, y = Umsatz), stat="identity", fill="skyblue")+
+  xlab("Jahr") + ylab("Mittlerer Umsatz")
+```
+
+```{r}
+# Bargraph der mittleren Umsatzdaten nach Zeit pro Warengruppe
+
+ggplot(fullData)+
+  geom_bar( aes(x = Datum, y = Umsatz), stat="summary", fun="mean", fill="skyblue")+
+  xlab("Jahr") + ylab("Mittlerer Umsatz")+
+  facet_wrap(~Warengruppe , scales="free")
+  #+ylim(0,1000)
 ```
 
 ```{r}
@@ -193,7 +259,98 @@ ggplot(fullData)+
 
 ```{r}
 #Lineare Regressionsgleichung
-mod <- lm(Umsatz ~ Warengruppe + as.factor(Monat) + as.factor(Wochentag) + as.factor(Wettercode) + Temperatur + Sonnenscheindauer + Niederschlagsmenge + KielerWoche  + Windchill, fullData) #+ as.factor(Wochentag)
+mod <- lm(Umsatz ~ as.factor(Warengruppe) + as.factor(Monat) + as.factor(Wochentag) + as.factor(Wettercode) + Temperatur + Sonnenscheindauer + Niederschlagsmenge + KielerWoche + I(Windchill^2), fullData) #+ as.factor(Wochentag)
 summary(mod)
 ```
+```{r}
+# Importing Data
+house_pricing <- read_csv("https://raw.githubusercontent.com/opencampus-sh/einfuehrung-in-data-science-und-ml/main/Woche%206/house_pricing.csv")
+```
 
+## Splitting Training and Test Data
+
+```{r}
+# Setting the random counter to a fixed value, so the random initialization stays the same (the random split is always the same)
+set.seed(1)
+# Shuffling the dataset (to get random orders within each dataset as well)
+new_row_order <- sample(nrow(fullData))
+fullData1 <- fullData[new_row_order,]
+# Assign each row number in the full dataset randomly to one of the three groups of datasets
+# The probability of being in one of the groups results then in crresponding group sizes
+assignment <- sample(1:2, size = nrow(fullData1), prob = c(.9, .1), replace = TRUE)
+# Create training and test datasets
+train_dataset <- fullData1[assignment == 1, ]  # subset house_pricing to training indices only
+test_dataset <- fullData1[assignment == 2, ]  # subset house_pricing to test indices only
+```
+
+
+## Data Preparation
+
+```{r}
+# Uncomment the next line if you want to check the correctness of your following code for the svm estimation with a small (and computationally fast) part of the training data set
+train_dataset <- sample_frac(train_dataset, .10)
+```
+
+
+## Training the SVM
+
+```{r}
+# Optimization of an SVM with standard hyper parameters
+# Typically NOT used; Instead, the function svm_tune() is used in order to also get a model with optimized hyper parameters
+model_svm <- svm(Umsatz ~ Warengruppe + Wochentag + KielerWoche + Monat + Bewoelkung, train_dataset) #+ Wochentag + KielerWoche + Monat
+```
+
+```{r}
+# Optimization of various SVM using systematically varied hyper parameters (typically called 'grid search' approach) and cross validation
+# the resulting object includes the optimal model in the element named 'best.model'
+svm_tune <- tune(svm, Umsatz ~ Warengruppe, data=train_dataset,
+                 ranges = list(epsilon = seq(0.2,1,0.1), cost = 2^(2:3)))
+```
+
+
+## Checking the Prediction Quality
+
+
+### Trainig Data
+
+SVM with a standard hyperparameters
+```{r}
+# Calculating the prediction for the training data using the best model according to the grid search
+pred_train <- predict(model_svm, train_dataset)
+# Calculating the prediction quality for the training data using the MAPE
+mape(train_dataset$Umsatz, pred_train)
+```
+
+SVM with hyperparameters tuned via grid search and cross validation
+```{r}
+# Calculating the prediction for the training data using the best model according to the grid search
+pred_train <- predict(svm_tune$best.model, train_dataset)
+# Calculating the prediction quality for the training data using the MAPE
+mape(train_dataset$Umsatz, pred_train)
+```
+
+### Test Data
+
+SVM with a standard hyperparameters
+```{r}
+# Calculating the prediction for the validation data using the best model according to the grid search
+pred_test <- predict(model_svm, test_dataset)
+# Calculating the prediction quality for the validation data using the MAPE
+mape(test_dataset$Umsatz, pred_test)
+```
+
+SVM with hyperparameters tuned via grid search and cross validation
+```{r}
+# Calculating the prediction for the test data using the best model according to the grid search
+pred_test <- predict(svm_tune$best.model, test_dataset)
+# Calculating the prediction quality for the test data using the MAPE
+mape(test_dataset$Umsatz, pred_test)
+```
+
+### New Data
+
+SVM with a standard hyperparameters
+```{r}
+# Calculating the prediction for the new data using the best model according to the grid search
+pred_new <- predict(model_svm, newData = newData)
+```
