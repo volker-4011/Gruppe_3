@@ -88,7 +88,7 @@
     #made some typos and thereby almost made me loose my sanity bcs I had to figure out the exact typos made for each download error. So for 77 
     #of the 84 #cases only the lines 91-95 and 116-122 are needed. Lines 96-115 are only needed to catch the typo-sheets ¯\_(ツ)_/¯
     
-    Uebernachtungen <- ""
+    Uebernachtungen <- vector()
     for (e in JahrMonat) {
       filename <- paste("G_IV_1-m",e,"_SH.xlsx", sep = "")
       url <- paste(
@@ -122,9 +122,6 @@
         Uebernachtungen <- c(Uebernachtungen, xls[4][xls[1] == "02 Kiel"])
       }
     }
-    #remove the empty string used to declare "Ubernachtungen" initially and convert "Uebernachtungen from a vector of strings to a vector of numerics
-    Uebernachtungen <- as.numeric(Uebernachtungen[-1])
-    
     #create common dataframe for "Uebernachtungen" and "JahrMonat"
     Uebernachtungen <- data.frame("Monatscode"=JahrMonat, "Uebernachtungen"=Uebernachtungen)
     
