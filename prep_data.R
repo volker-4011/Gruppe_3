@@ -64,7 +64,7 @@
     #####################################################
     # Import of overnight stay data
     #The required data is saved in the form of *.xlsx sheets at https://www.statistik-nord.de/fileadmin/Dokumente/Statistische_Berichte/industrie__handel_und_dienstl/G_IV_1_m_S/G_IV_1-m1506_SH.xlsx 
-    #in this case for the month of June of the year 2016 indicated by "1506". In theory only this four digit code changes. For 78 of the 84 months
+    #in this case for the month of June of the year 2015 indicated by "1506". In theory only this four digit code changes. For 78 of the 84 months
     #that we are interested in, this statement is true. More about that later. The conclusion drawn from this means: First we need to create a vector
     #containing all four digit "month-year-codes" for the desired months.
     
