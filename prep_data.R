@@ -86,7 +86,7 @@
     #This for-loop iterates through every element of the vector "JahrMonat" pasting it into the URL. In every iteration it therefore downloads the
     #next *.xlsx sheet. This statement is true for most of the sheets. Unfortunately for 7 of the 84 sheets the person overseeing the upload has
     #made some typos and thereby almost made me loose my sanity bcs I had to figure out the exact typos made for each download error. So for 77 
-    #of the 84 #cases only the lines 80-83 and 105-111 are needed. Lines 85-101 are only needed to catch the typo-sheets ¯\_(ツ)_/¯
+    #of the 84 #cases only the lines 91-95 and 116-122 are needed. Lines 96-115 are only needed to catch the typo-sheets ¯\_(ツ)_/¯
     
     Uebernachtungen <- ""
     for (e in JahrMonat) {
