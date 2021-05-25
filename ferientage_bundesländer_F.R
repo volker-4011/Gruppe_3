@@ -16,19 +16,22 @@ cleanFun <- function(htmlString) {
 #     12345678910
 #substr(umsatzdaten$Datum, 1, 4)
 allYears <- unique(substr(umsatzdaten_ferien$Datum, 1, 4))
-
+#allYears <- c("2013")
 #print(allYears)
 #Ausgabe: [1] "2013" "2014" "2015" "2016" "2017" "2018" "2019"
 
 ferientage <- data.frame(matrix(ncol = 4, nrow = 0))
 
 bundesland <- c("Baden-Wuerttemberg","Bayern","Berlin","Brandenburg","Bremen", "Hamburg", "Hessen", "Mecklenburg-Vorpommern", "Niedersachsen", "Nordrhein-Westfalen", "Rheinland-Pfalz", "Saarland", "Sachsen","Sachsen-Anhalt", "Schleswig-Holstein", "Thueringen")
-
+#bundesland <- c("Bremen")
 for(b in bundesland){
   
 
 for(l in allYears){
   
+  #l = allYears
+  #b = bundesland
+
   site = paste("https://www.ferienkalender.com/ferien_deutschland/",b,"/",l,"-ferien-",tolower(b),".htm", sep = "")
   test = read_html(site)
   print(site)
@@ -38,16 +41,67 @@ for(l in allYears){
     .[1]
   
   test = str_replace_all(test,"\n", "") 
-  test = str_replace_all(test, paste("Ferienkalender ",b," ",l,"Ferien ",l," im deutschen Bundesland ",b,":Winterferien-", sep = ""), "")
+  print(test)
+  b2 = str_replace_all(b,"ue","ü")
+  print(b2)
+  test = str_replace_all(test, paste("Ferienkalender ",b2," ",l,"Ferien ",l," im deutschen Bundesland ",b2,":", sep = ""), "")
+  print(test)
   test = str_replace_all(test," / Frühjahrsferien", "") 
-  test = str_replace_all(test, paste("Ferien ",l," für ",b, sep = ""), "") 
+  print(test)
+  test = str_replace_all(test, paste("Ferien ",l," für ",b2, sep = ""), "") 
+  print(test)
+  test = str_replace_all(test,"Winterferien-","")
+  print(test)
+  
+  test = str_replace_all(test,"Pfingstferien-","")
+  print(test)
+  
+  
+  pattern <- "Pfingstferien\\s*(.*?)\\s*Sommerferien"
+  result <- regmatches(test, regexec(pattern, test))
+  result <- result[[1]][2]
+  print(result)
+  if(grepl("/", result, fixed = TRUE)){
+    test = str_replace_all(test,result,str_replace_all(result,"/","Pfingstferien"))
+    print(test)
+  }
+  
+  pattern <- "Herbstferien\\s*(.*?)\\s*Weihnachtsferien"
+  result <- regmatches(test, regexec(pattern, test))
+  result <- result[[1]][2]
+  print(result)
+  if(grepl("/", result, fixed = TRUE)){
+    test = str_replace_all(test,result,str_replace_all(result,"/","Herbstferien"))
+    print(test)
+  }
+  
+  pattern <- "Sommerferien\\s*(.*?)\\s*Herbstferien"
+  result <- regmatches(test, regexec(pattern, test))
+  result <- result[[1]][2]
+  print(result)
+  if(grepl("/", result, fixed = TRUE)){
+    test = str_replace_all(test,result,str_replace_all(result,"/","Sommerferien"))
+    print(test)
+  }
+  
+  pattern <- "Osterferien\\s*(.*?)\\s*Pfingstferien"
+  result <- regmatches(test, regexec(pattern, test))
+  result <- result[[1]][2]
+  print(result)
+  if(grepl("/", result, fixed = TRUE)){
+    test = str_replace_all(test,result,str_replace_all(result,"/","Osterferien"))
+    print(test)
+  }
   
   #######################################
-  test = str_replace_all(test," - ", "0000") 
+  test = str_replace_all(test," - ", "0000")
+  print(test)
   numbers <- str_extract_all(test,"\\(?[0-9,.]+\\)?")[[1]]
+  print(numbers)
   numbers <- paste(numbers, l, sep="")
+  print(numbers)
   numbers = str_replace_all(numbers,"0000", paste(l," Y ", sep = ""))
-  
+  print(numbers)
   year_add <- as.numeric(as.numeric(l)+1)
   
   #######################################
@@ -62,13 +116,15 @@ for(l in allYears){
   
   k = 1;
   m = 1;
-  
+
   for (j in numbers){
     Datum <- j 
     
-    if(m==5){
+    if(characters[m]=="Weihnachtsferien"){
       Datum = str_sub(Datum,end = -5)
       Datum = paste(Datum, year_add, sep = "")
+      #print(Datum)
+      #break
     }
     
     Datum <- strsplit(Datum, split = " Y ") 
@@ -105,4 +161,4 @@ ferientage$Ferien <- str_replace_all(ferientage$Ferien, "\\(?[a-zA-Z]+\\)?", "1"
 
 ferientage <- filter(ferientage, Datum <= "2019-12-31")
 
-write.csv(ferientage,"C:\\Users\\Peyman Farshidfar\\Documents\\ferientage.csv")
+
