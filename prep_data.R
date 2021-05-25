@@ -64,7 +64,7 @@
     #####################################################
     # Import of overnight stay data
     #The required data is saved in the form of *.xlsx sheets at https://www.statistik-nord.de/fileadmin/Dokumente/Statistische_Berichte/industrie__handel_und_dienstl/G_IV_1_m_S/G_IV_1-m1506_SH.xlsx 
-    #in this case for the month of June of the year 2016 indicated by "1506". In theory only this four digit code changes. For 78 of the 84 months
+    #in this case for the month of June of the year 2015 indicated by "1506". In theory only this four digit code changes. For 78 of the 84 months
     #that we are interested in, this statement is true. More about that later. The conclusion drawn from this means: First we need to create a vector
     #containing all four digit "month-year-codes" for the desired months.
     
@@ -86,9 +86,9 @@
     #This for-loop iterates through every element of the vector "JahrMonat" pasting it into the URL. In every iteration it therefore downloads the
     #next *.xlsx sheet. This statement is true for most of the sheets. Unfortunately for 7 of the 84 sheets the person overseeing the upload has
     #made some typos and thereby almost made me loose my sanity bcs I had to figure out the exact typos made for each download error. So for 77 
-    #of the 84 #cases only the lines 80-83 and 105-111 are needed. Lines 85-101 are only needed to catch the typo-sheets ¯\_(ツ)_/¯
+    #of the 84 #cases only the lines 91-95 and 116-122 are needed. Lines 96-115 are only needed to catch the typo-sheets ¯\_(ツ)_/¯
     
-    Uebernachtungen <- ""
+    Uebernachtungen <- vector()
     for (e in JahrMonat) {
       filename <- paste("G_IV_1-m",e,"_SH.xlsx", sep = "")
       url <- paste(
@@ -122,9 +122,6 @@
         Uebernachtungen <- c(Uebernachtungen, xls[4][xls[1] == "02 Kiel"])
       }
     }
-    #remove the empty string used to declare "Ubernachtungen" initially and convert "Uebernachtungen from a vector of strings to a vector of numerics
-    Uebernachtungen <- as.numeric(Uebernachtungen[-1])
-    
     #create common dataframe for "Uebernachtungen" and "JahrMonat"
     Uebernachtungen <- data.frame("Monatscode"=JahrMonat, "Uebernachtungen"=Uebernachtungen)
     
