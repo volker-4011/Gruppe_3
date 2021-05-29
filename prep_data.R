@@ -69,61 +69,61 @@
     #containing all four digit "month-year-codes" for the desired months.
     
     #Create vector of all month numbers in double digits
-    months <- c("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12")
+    #months <- c("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12")
     #create vector of all years of "umsatzdaten"
-    years <- as.character(13:19)
+    #years <- as.character(13:19)
     
     
     #create vector "JahrMonat" from vectors "months" and "years" containing all combinations of "years" and "months"
-    for (e in years)
-      if (e == "13") {
-        JahrMonat <- paste(e, months, sep = "")
-      } else {
-        a <- paste(e, months, sep = "")
-        JahrMonat <- c(JahrMonat, a)
-      }
+    #for (e in years)
+    #  if (e == "13") {
+    #    JahrMonat <- paste(e, months, sep = "")
+    #  } else {
+    #    a <- paste(e, months, sep = "")
+    #    JahrMonat <- c(JahrMonat, a)
+    #  }
     
     #This for-loop iterates through every element of the vector "JahrMonat" pasting it into the URL. In every iteration it therefore downloads the
     #next *.xlsx sheet. This statement is true for most of the sheets. Unfortunately for 7 of the 84 sheets the person overseeing the upload has
     #made some typos and thereby almost made me loose my sanity bcs I had to figure out the exact typos made for each download error. So for 77 
     #of the 84 #cases only the lines 91-95 and 116-122 are needed. Lines 96-115 are only needed to catch the typo-sheets ¯\_(ツ)_/¯
     
-    Uebernachtungen <- vector()
-    for (e in JahrMonat) {
-      filename <- paste("G_IV_1-m",e,"_SH.xlsx", sep = "")
-      url <- paste(
-        "https://www.statistik-nord.de/fileadmin/Dokumente/Statistische_Berichte/industrie__handel_und_dienstl/G_IV_1_m_S/", filename, sep = "")
-      if (url.exists(url=url)) {
-        filedest <- paste("sheets/", filename, sep = "")
-        curl::curl_download(url, filedest)
-        xls <- read_excel(filedest, sheet = "T1_1")
-        Uebernachtungen <- c(Uebernachtungen, xls[4][xls[1] == "02 Kiel"])
-      } else {
-        filename <- paste("G_IV_1-m",e,"_SH-.xlsx", sep = "")
-        url <- paste(
-          "https://www.statistik-nord.de/fileadmin/Dokumente/Statistische_Berichte/industrie__handel_und_dienstl/G_IV_1_m_S/", filename, sep="")
-        if (!url.exists(url=url)) {
-          filename <- paste("G_IV_1_m_S_",e,".xlsx", sep = "")
-          url <- paste(
-            "https://www.statistik-nord.de/fileadmin/Dokumente/Statistische_Berichte/industrie__handel_und_dienstl/G_IV_1_m_S/", filename, sep = "")
-          if (!url.exists(url=url)) {
-            filename <- paste("G_IV_1_m",e,"_SH.xlsx", sep = "")
-            url <- paste(
-              "https://www.statistik-nord.de/fileadmin/Dokumente/Statistische_Berichte/industrie__handel_und_dienstl/G_IV_1_m_S/", filename, sep = "")
-          }
-        }
-        #declare file destination to be inside folder "sheets"
-        filedest <- paste("sheets/", filename, sep = "")
-        #download file from "url" into "filedest"
-        curl::curl_download(url, filedest)
+    #Uebernachtungen <- vector()
+    #for (e in JahrMonat) {
+    #  filename <- paste("G_IV_1-m",e,"_SH.xlsx", sep = "")
+    #  url <- paste(
+    #    "https://www.statistik-nord.de/fileadmin/Dokumente/Statistische_Berichte/industrie__handel_und_dienstl/G_IV_1_m_S/", filename, sep = "")
+    #  if (url.exists(url=url)) {
+    #    filedest <- paste("sheets/", filename, sep = "")
+    #    curl::curl_download(url, filedest)
+    #    xls <- read_excel(filedest, sheet = "T1_1")
+    #    Uebernachtungen <- c(Uebernachtungen, xls[4][xls[1] == "02 Kiel"])
+    #  } else {
+    #    filename <- paste("G_IV_1-m",e,"_SH-.xlsx", sep = "")
+    #    url <- paste(
+    #      "https://www.statistik-nord.de/fileadmin/Dokumente/Statistische_Berichte/industrie__handel_und_dienstl/G_IV_1_m_S/", filename, sep="")
+    #    if (!url.exists(url=url)) {
+    #      filename <- paste("G_IV_1_m_S_",e,".xlsx", sep = "")
+    #      url <- paste(
+    #        "https://www.statistik-nord.de/fileadmin/Dokumente/Statistische_Berichte/industrie__handel_und_dienstl/G_IV_1_m_S/", filename, sep = "")
+    #      if (!url.exists(url=url)) {
+    #        filename <- paste("G_IV_1_m",e,"_SH.xlsx", sep = "")
+    #        url <- paste(
+    #          "https://www.statistik-nord.de/fileadmin/Dokumente/Statistische_Berichte/industrie__handel_und_dienstl/G_IV_1_m_S/", filename, sep = "")
+    #      }
+    #    }
+    #    #declare file destination to be inside folder "sheets"
+    #    filedest <- paste("sheets/", filename, sep = "")
+    #    #download file from "url" into "filedest"
+    #    curl::curl_download(url, filedest)
         #import only sheet "T1_1" from file "filename" into variable xls
-        xls <- read_excel(filedest, sheet = "T1_1")
+    #    xls <- read_excel(filedest, sheet = "T1_1")
         #extract only overnight stays for kiel from xls and concatenate it with the former vector "Uebernachtungen"
-        Uebernachtungen <- c(Uebernachtungen, xls[4][xls[1] == "02 Kiel"])
-      }
-    }
+     #   Uebernachtungen <- c(Uebernachtungen, xls[4][xls[1] == "02 Kiel"])
+    #  }
+    #}
     #create common dataframe for "Uebernachtungen" and "JahrMonat"
-    Uebernachtungen <- data.frame("Monatscode"=JahrMonat, "Uebernachtungen"=Uebernachtungen)
+    #Uebernachtungen <- data.frame("Monatscode"=JahrMonat, "Uebernachtungen"=Uebernachtungen)
     
     ####################################
     
@@ -136,12 +136,12 @@
     
     #merge over night stays with "fullData"
     #create column of "Monatscode" for each date of "fullData" to full_join() by "Monatscode"
-    for (e in as.numeric(row.names(fullData))) {
-      fullData$Monatscode[e] <- paste(
-        (year(fullData$Datum[e])-2000),
-        formatC(month(fullData$Datum[e]), width = 2, format = "d", flag = "0"), sep = "")
-    }
-    fullData <- full_join(fullData, Uebernachtungen, by = "Monatscode")
+    #for (e in as.numeric(row.names(fullData))) {
+    #  fullData$Monatscode[e] <- paste(
+    #    (year(fullData$Datum[e])-2000),
+    #    formatC(month(fullData$Datum[e]), width = 2, format = "d", flag = "0"), sep = "")
+    #}
+    #fullData <- full_join(fullData, Uebernachtungen, by = "Monatscode")
     #########################
     
     ###Optimierung der Daten/ Hinzufügen neuer Variablen
