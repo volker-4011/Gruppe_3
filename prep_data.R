@@ -161,12 +161,6 @@
     #Dezimalstellen wenig sinvoll, besser Runden
     fullData$Umsatz <- round(fullData$Umsatz)
     
-    # Warengruppennummer in Warengruppenname uebersetzen
-    # 1=Brot, 2=Broetchen, 3=Crossaint, 4=Konditorei, 5=Kuchen, 6=Saisonbrot
-    Warengruppen <- c("Brot", "Broetchen", "Crossaint", "Konditorei", "Kuchen", "Saisonbrot")
-    for (e in as.numeric(row.names(fullData)))
-      fullData$Warengruppe[e] <- Warengruppen[as.numeric(fullData$Warengruppe[e])]
-    
     #Alle NA durch 0 ersetzen in Boolschen Variablen
     fullData$KielerWoche[is.na(fullData$KielerWoche)] <- 0 # Alle NA in KielerWoche durch 0 ersetzen
     fullData$Ferien[is.na(fullData$Ferien)] <- 0 #Entweder Ferien oder "nicht = 0"
