@@ -151,7 +151,7 @@
     
     # Warengruppennummer in Warengruppenname uebersetzen
     # 1=Brot, 2=Broetchen, 3=Crossaint, 4=Konditorei, 5=Kuchen, 6=Saisonbrot
-     Warengruppen <- c("Brot", "Brötchen", "Crossaint", "Konditorei", "Kuchen", "Saisonbrot")
+     Warengruppen <- c("Brot", "Broetchen", "Crossaint", "Konditorei", "Kuchen", "Saisonbrot")
      for (e in as.numeric(row.names(fullData)))
        fullData$Warengruppe[e] <- Warengruppen[as.numeric(fullData$Warengruppe[e])]
     
