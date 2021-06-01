@@ -18,7 +18,7 @@ output: html_notebook
 #conda_install("r-reticulate", "h5py")
  
 # Verwenden der speziellen Python Umgebung die zuvor erstellt wurde
-use_condaenv("r-reticulate")
+#use_condaenv("r-reticulate")
 ```
 
 
