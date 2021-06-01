@@ -149,6 +149,12 @@
     #Windchillfaktor berechnen und hinzufügen (gefühlte Temperatur für unteren Temperaturbereich)
     fullData$Windchill <- with(fullData, 13.12+0.6215*Temperatur+(0.3965*Temperatur-11.37)*Windgeschwindigkeit^0.16)
     
+    # Warengruppennummer in Warengruppenname uebersetzen
+    # 1=Brot, 2=Broetchen, 3=Crossaint, 4=Konditorei, 5=Kuchen, 6=Saisonbrot
+     Warengruppen <- c("Brot", "Brötchen", "Crossaint", "Konditorei", "Kuchen", "Saisonbrot")
+     for (e in as.numeric(row.names(fullData)))
+       fullData$Warengruppe[e] <- Warengruppen[as.numeric(fullData$Warengruppe[e])]
+    
     #Extrahieren des Wochentags aus dem Datum und speichern in neuer Variablen
     fullData$Wochentag <- weekdays(fullData$Datum)
     
@@ -166,14 +172,27 @@
     fullData$Ferien[is.na(fullData$Ferien)] <- 0 #Entweder Ferien oder "nicht = 0"
     fullData$Feiertag[is.na(fullData$Feiertag)] <- 0 #Entweder Feiertag oder "nicht = 0"
     
+    #Variablen vom chr in num wandeln
+    fullData$Ferien <- as.numeric(fullData$Ferien)
+    fullData$Feiertag <- as.numeric(fullData$Feiertag)
+    
     #########################
+    
+    ###Vorbereiten des Dataframe für die Vorhersage
+    
+    #Dummy Encoden der Variablen für die Vorhersage
+    
+    dummy_list <- c("Jahr", "Monat", "Wochentag", "Warengruppe" , "Bewoelkung")
+    fullData_dummy = dummy_cols(fullData, dummy_list)
+    
+    Jahr_dummies = c('Jahr_2013', 'Jahr_2014', 'Jahr_2015', 'Jahr_2016', 'Jahr_2017', 'Jahr_2018', 'Jahr_2019')
+    Monat_dummies = c('Monat_2013', 'Jahr_2014', 'Jahr_2015', 'Jahr_2016', 'Jahr_2017', 'Jahr_2018', 'Jahr_2019')
     
     #Dataframe für nächsten Tag erstellen (für die Vorhersage)  
     
-    #Abspeichern der Daten für den Tag, der vorhergesagt werden soll in einem neuen Dataframe
-    newData <- fullData[fullData$Datum == d, ]
+    newData <- rbind(fullData_dummy[fullData_dummy$Datum == d, ])
     
     #Löschen der Daten für den Tag, der vorhergesagt werden soll aus den Trainingsdaten
-    fullData <- subset(fullData, Datum != d)
+    fullData_dummy <- subset(fullData_dummy, Datum != d)
 
   ####################################################################################################################################
