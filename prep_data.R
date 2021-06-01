@@ -182,11 +182,8 @@
     
     #Dummy Encoden der Variablen für die Vorhersage
     
-    dummy_list <- c("Jahr", "Monat", "Wochentag", "Warengruppe" , "Bewoelkung")
+    dummy_list <- c("Monat", "Wochentag", "Warengruppe" , "Bewoelkung")
     fullData_dummy = dummy_cols(fullData, dummy_list)
-    
-    Jahr_dummies = c('Jahr_2013', 'Jahr_2014', 'Jahr_2015', 'Jahr_2016', 'Jahr_2017', 'Jahr_2018', 'Jahr_2019')
-    Monat_dummies = c('Monat_2013', 'Jahr_2014', 'Jahr_2015', 'Jahr_2016', 'Jahr_2017', 'Jahr_2018', 'Jahr_2019')
     
     #Dataframe für nächsten Tag erstellen (für die Vorhersage)  
     
