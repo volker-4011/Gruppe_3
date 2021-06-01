@@ -53,7 +53,6 @@ train_dataset <- sample_frac(train_dataset, .10)
 # Durch die dummy Variablen sind es mega viele Variablen. Ich weiß nicht, wie man die schöner in die svm gibt. Eine Liste akzeptiert die svm als Input nicht.
 model_svm <- svm(Umsatz ~ 
                    Warengruppe_Brot +Warengruppe_Broetchen +Warengruppe_Crossaint +Warengruppe_Konditorei + Warengruppe_Kuchen +Warengruppe_Saisonbrot +
-                   Jahr_2013 + Jahr_2014 +Jahr_2015 + Jahr_2016 + Jahr_2017 + Jahr_2018 + Jahr_2019 +
                    Monat_1 + Monat_2 + Monat_3 + Monat_4 + Monat_5 + Monat_6 + Monat_7 + Monat_8 + Monat_9 + Monat_10 + Monat_11 + Monat_12 +
                    Wochentag_Montag + Wochentag_Dienstag + Wochentag_Mittwoch + Wochentag_Donnerstag + Wochentag_Freitag + Wochentag_Samstag + Wochentag_Sonntag+
                    Bewoelkung_1 +  Bewoelkung_2 +  Bewoelkung_3 +  Bewoelkung_4 +  Bewoelkung_5 +  Bewoelkung_6 +  Bewoelkung_7 +  Bewoelkung_8 + 
@@ -63,8 +62,7 @@ model_svm <- svm(Umsatz ~
 ```{r}
 # Optimization of various SVM using systematically varied hyper parameters (typically called 'grid search' approach) and cross validation
 # the resulting object includes the optimal model in the element named 'best.model'
-svm_tune <- tune(svm, Umsatz ~ Warengruppe_Brot +Warengruppe_Brötchen +Warengruppe_Crossaint +Warengruppe_Konditorei + Warengruppe_Kuchen +Warengruppe_Saisonbrot +
-                   Jahr_2013 + Jahr_2014 +Jahr_2015 + Jahr_2016 + Jahr_2017 + Jahr_2018 + Jahr_2019 +
+svm_tune <- tune(svm, Umsatz ~ Warengruppe_Brot +Warengruppe_Broetchen +Warengruppe_Crossaint +Warengruppe_Konditorei + Warengruppe_Kuchen +Warengruppe_Saisonbrot +
                    Monat_1 + Monat_2 + Monat_3 + Monat_4 + Monat_5 + Monat_6 + Monat_7 + Monat_8 + Monat_9 + Monat_10 + Monat_11 + Monat_12 +
                    Wochentag_Montag + Wochentag_Dienstag + Wochentag_Mittwoch + Wochentag_Donnerstag + Wochentag_Freitag + Wochentag_Samstag + Wochentag_Sonntag+
                    Bewoelkung_1 +  Bewoelkung_2 +  Bewoelkung_3 +  Bewoelkung_4 +  Bewoelkung_5 +  Bewoelkung_6 +  Bewoelkung_7 +  Bewoelkung_8 + 
