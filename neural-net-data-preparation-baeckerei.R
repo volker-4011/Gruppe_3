@@ -16,14 +16,18 @@ source("prep_data.R")
 ###################################################
 ### Data Preparation ####
 
+#For Testung just bluntly remove all rows with NAs
+fullNoNAs <- fullData[complete.cases(fullData), ]
+
 # Recoding of the variables into one-hot encoded (dummy) variables
 dummy_list <- c("Warengruppe", "Monat", "Wochentag")
-fullData_dummy = dummy_cols(fullData, dummy_list)
+fullData_dummy = dummy_cols(fullNoNAs, dummy_list)
 
 # Definition of lists for each one-hot encoded variable (just to make the handling easier)
-Warengruppe_dummies = c('Warengruppe_1', 'Warengruppe_2', 'Warengruppe_3', 'Warengruppe_4', 'Warengruppe_5', 'Warengruppe_6')
-Monat_dummies = c('Monat_1', 'Monat_2', 'Monat_3', 'Monat_4','Monat_5','Monat_6','Monat_7','Monat_8','Monat_9','Monat_10','Monat_11','Monat_12')
-Wochentag_dummies = c('Wochentag_Montag', 'Wochentag_Dienstag', 'Wochentag_Mittwoch', 'Wochentag_Donnerstag', 'Wochentag_Freitag', 'Wochentag_Samstag', 'Wochentag_Sonntag')
+#Remove first dummy encoded variable to avoid colinearities('Warengruppe_1','Monat_1', 'Wochentag_Montag')
+Warengruppe_dummies = c('Warengruppe_2', 'Warengruppe_3', 'Warengruppe_4', 'Warengruppe_5', 'Warengruppe_6')
+Monat_dummies = c('Monat_2', 'Monat_3', 'Monat_4','Monat_5','Monat_6','Monat_7','Monat_8','Monat_9','Monat_10','Monat_11','Monat_12')
+Wochentag_dummies = c('Wochentag_Dienstag', 'Wochentag_Mittwoch', 'Wochentag_Donnerstag', 'Wochentag_Freitag', 'Wochentag_Samstag', 'Wochentag_Sonntag')
 
 
 ###################################################
