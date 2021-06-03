@@ -176,6 +176,10 @@
     fullData$Ferien <- as.numeric(fullData$Ferien)
     fullData$Feiertag <- as.numeric(fullData$Feiertag)
     
+    
+    #Daten in ein CSV speichern
+    
+
     #########################
     
     ###Vorbereiten des Dataframe für die Vorhersage
@@ -184,6 +188,8 @@
     
     dummy_list <- c("Monat", "Wochentag", "Warengruppe" , "Bewoelkung")
     fullData_dummy = dummy_cols(fullData, dummy_list)
+    
+    
     
     #Dataframe für nächsten Tag erstellen (für die Vorhersage)  
     
@@ -196,5 +202,15 @@
     # ist nicht die feine Art, wir müssen uns nochmal genauer um die NAs kümmern.
     fullData_dummy[is.na(fullData_dummy)] <- 0
     newData[is.na(newData)] <- 0
+    
+  
+########################Für Python/Tenser    
+    writecsvData <- fullData
+    writecsvData <- cbind(ID = 1:nrow(writecsvData), writecsvData)
+    
+    write.csv(writecsvData,"fullData.csv", append = FALSE, quote = TRUE, sep = ",",
+              eol = "\n", na = "NA", dec = ".", row.names = FALSE,
+              col.names = TRUE, qmethod = c("escape", "double"),
+              fileEncoding = "")
 
   ####################################################################################################################################
