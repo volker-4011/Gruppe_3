@@ -15,8 +15,8 @@ source("prep_data.R")
 # alle NAs durch 0 ersetzen, damit die svm läuft
 # ist nicht die feine Art, wir müssen uns nochmal genauer um die NAs kümmern.
 
-fullData_dummy[is.na(fullData_dummy)] <- 0
-newData[is.na(newData)] <- 0
+#fullData_dummy[is.na(fullData_dummy)] <- 0
+#newData[is.na(newData)] <- 0
 ```
 
 

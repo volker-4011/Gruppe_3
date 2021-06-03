@@ -191,5 +191,10 @@
     
     #Löschen der Daten für den Tag, der vorhergesagt werden soll aus den Trainingsdaten
     fullData_dummy <- subset(fullData_dummy, Datum != d)
+    
+    # alle NAs durch 0 ersetzen, damit die svm läuft
+    # ist nicht die feine Art, wir müssen uns nochmal genauer um die NAs kümmern.
+    fullData_dummy[is.na(fullData_dummy)] <- 0
+    newData[is.na(newData)] <- 0
 
   ####################################################################################################################################
