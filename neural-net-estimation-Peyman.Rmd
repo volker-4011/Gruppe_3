@@ -134,20 +134,32 @@ model = tf.keras.models.load_model("python_model.h5")
 ```
 
 
+```{r}
+#Sortieren nach ID
+newData <- newData[order(newData$ID),]
+
+colnamesPred <- colnames(validation_features)
+#colnamesPred
+#typeof(colnamesPred)
+validation_features2 <- newData[colnamesPred]
+
+validation_features2
+
+
+colnamesPred2 <- colnames(training_features)
+#colnamesPred
+#typeof(colnamesPred)
+training_features2 <- newData[colnamesPred2]
+
+training_features2
+```
+
+
 ### Auswertung der Schätzergebnisse ###
 ```{r}
-#Test
-colnamesPred <- colnames(validation_features)
-colnamesPred
-typeof(colnamesPred)
-validation_features2 <- newData[colnamesPred]
-#validation_features2 <- merge(validation_features,validation_features2, by="Feiertag")
-#Test
-
-
 
 # Schätzung der (normierten) Preise für die Trainings- und Testdaten
-training_predictions <- py$model$predict(training_features)
+training_predictions <- py$model$predict(training_features2)
 validation_predictions <- py$model$predict(validation_features2)
 # Vergleich der Gütekriterien für die Traingings- und Testdaten
 

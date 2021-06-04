@@ -97,7 +97,7 @@ for(i in 1:ncol(fullData_dummy)) {       # for-loop over columns
 
 # Selection of the features (the independent variables used to predict the dependent)
 #features <- c('sqft_lot', 'waterfront', 'grade', 'bathrooms', view_dummies, condition_dummies)
-features <- c('Ferien', 'Feiertag','Wochenende',monat_dummies, wochentag_dummies, warengruppe_dummies)
+features <- c('Ferien', 'Feiertag','Wochenende',bewoelkung_dummies,monat_dummies, wochentag_dummies, warengruppe_dummies)
 # Selection of the label (the dependent variable)
 labels <- 'Umsatz'
 
