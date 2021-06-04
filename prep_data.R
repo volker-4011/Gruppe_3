@@ -51,7 +51,19 @@
     wetter_dwd$Niederschlagsmenge <- as.numeric(wetter_dwd$Niederschlagsmenge)
     
     ####################################
-    
+    ####Ausreißer löschen (Silvester und Heiligabend)
+    #Für Silvester und Heiligabend in Spalte "helper" 1 eintragen
+    for(i in 1:nrow(umsatzdaten)){
+      if((format(umsatzdaten$Datum[i], "%d/%m") == "24/12") | (format(umsatzdaten$Datum[i], "%d/%m") == "31/12")){
+        umsatzdaten$helper[i] <- 1
+      } else{
+        umsatzdaten$helper[i] <- 0
+      }
+    }
+    #Silvester und Heiligabend löschen, anschließend Spalte "helper" löschen
+    umsatzdaten <- umsatzdaten[umsatzdaten$helper==0, ]
+    umsatzdaten$helper <- NULL
+
     
     ###Vorbereitung für die Vorhersage: Zeilen für alle 6 Warengruppen hinzufügen für den ersten Tag, für den keine Umsatzdaten vorhanden sind
     d <- max(umsatzdaten$Datum)+1
@@ -203,9 +215,7 @@
     for(i in 1:nrow(fullData)){
       fullData$Umsatz_mean[i] <- mean_umsatz$x[mean_umsatz$Group.1 == fullData$Jahr[i] & mean_umsatz$Group.2 == fullData$Monat[i] & mean_umsatz$Group.3 == fullData$Warengruppe[i]]
     }
-    #Daten in ein CSV speichern
     
-
     #########################
     
     ###Vorbereiten des Dataframe für die Vorhersage
