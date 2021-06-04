@@ -1,4 +1,10 @@
-
+#Falls csv bereits vorhanden, laden
+if(file.exists("data/feiertage_SH.csv")){
+  feiertage <- read_csv("data/feiertage_SH.csv")
+}else{
+  
+  dir.create("data/", recursive = TRUE)
+  
 # Import needed libraries
 source("prep_environment.R")
 # Import turnover data
@@ -18,15 +24,11 @@ cleanFun <- function(htmlString) {
 #substr(umsatzdaten$Datum, 1, 4)
 allYears <- unique(substr(umsatzdaten_feiertage$Datum, 1, 4))
 
-
 #print(allYears)
 #Ausgabe: [1] "2013" "2014" "2015" "2016" "2017" "2018" "2019"
 
-
-
 feiertage <- data.frame(matrix(ncol = 2, nrow = 0))
 for(i in allYears){
-  
   
   testJahr = i;
   
@@ -34,7 +36,7 @@ for(i in allYears){
   
   site = str_replace_all(site," ", "")
   
-  print(site);
+  #print(site);
   test = read_html(site)
   
   
@@ -46,11 +48,11 @@ for(i in allYears){
   test = str_replace_all(test,"\n", "")
   
   string1 = str_replace(paste("              ",testJahr)," ", "");
-  print(string1)
+  #print(string1)
   
   string2 = str_replace(paste(".",testJahr)," ", "");
   
-  print(string2)
+  #print(string2)
   
   test = str_replace_all(test,string1, string2)
   
@@ -72,25 +74,22 @@ for(i in allYears){
   
   test = str_replace_all(test,"  ", ";")
   
-  print(test)
-  
-  
+  #print(test)
+ 
   test = str_replace_all(test," ", "")  
-  
-  
-  
+
   rs <- (test)
   rs = strsplit(rs, split = ";")
-  print(rs)
+  #print(rs)
   
-  print(typeof(rs))
+  #print(typeof(rs))
   
   
   rs <-unlist(rs, use.names=FALSE);
   
-  print(rs)
+  #print(rs)
   
-  print(test)
+  #print(test)
   
   
   Datum <- vector();
@@ -104,7 +103,6 @@ for(i in allYears){
       Jahr <- append(Jahr,testJahr);
     }else{
       Feiertag <- append(Feiertag,i);
-      
     }
     j = j + 1;
   }
@@ -117,19 +115,17 @@ for(i in allYears){
 
 feiertage$Datum <- as.Date(feiertage$Datum, "%d.%m.%Y")
 
-
-
-
 remove(allYears,Jahr,Datum,Feiertag,i,j,rs,site,string1,string2,test,testJahr, umsatzdaten_feiertage)
-
 
 feiertage$Feiertag <- str_replace_all(feiertage$Feiertag, "\\(?[a-zA-Z1-9.]+\\)?", "1")
 
-#ferientage <- dplyr::select(ferientage, -contains("2020"))
-#dplyr::select(ferientage, contains('2020')) 
+#Falls nicht vorhanden, um erneutes laden zu vermeiden, als csv speichern
+write.csv(feiertage,"data/feiertage_SH.csv", append = FALSE, quote = TRUE, sep = ",",
+          eol = "\n", na = "NA", dec = ".", row.names = FALSE,
+          col.names = TRUE, qmethod = c("escape", "double"),
+          fileEncoding = "")
 
-#feiertage <- filter(feiertage, Datum <= "2019-12-31")
 
-#write.csv(feiertage,"C:\\Users\\Peyman Farshidfar\\Documents\\feiertage.csv")
+}
 
 

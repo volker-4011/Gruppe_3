@@ -1,3 +1,10 @@
+#Falls csv bereits vorhanden, laden
+if(file.exists("data/ferientage_bundeslaender_webseite.csv")){
+  ferientage_bundeslaender <- read_csv("data/ferientage_bundeslaender_webseite.csv")
+}else{
+  
+  dir.create("data/", recursive = TRUE)
+
 # Import libraries
 source("prep_environment.R")
 # Import libraries
@@ -34,7 +41,7 @@ for(b in bundesland){#Durchläuft jedes Bundesland
     site = paste("https://www.ferienkalender.com/ferien_deutschland/",b,"/",l,"-ferien-",tolower(b),".htm", sep = "")
     #Daten auf das jeweilige html Kästchen/Tag Filtern
     test = read_html(site)
-    print(site)
+    #print(site)
     test <- test %>% 
       html_nodes(".kasten") %>%
       html_text() %>% 
@@ -53,7 +60,7 @@ for(b in bundesland){#Durchläuft jedes Bundesland
     pattern <- "Pfingstferien\\s*(.*?)\\s*Sommerferien"
     result <- regmatches(test, regexec(pattern, test))
     result <- result[[1]][2]
-    print(result)
+    #print(result)
     if(grepl("/", result, fixed = TRUE)){
       test = str_replace_all(test,result,str_replace_all(result,"/","Pfingstferien"))
     }
@@ -61,7 +68,7 @@ for(b in bundesland){#Durchläuft jedes Bundesland
     pattern <- "Herbstferien\\s*(.*?)\\s*Weihnachtsferien"
     result <- regmatches(test, regexec(pattern, test))
     result <- result[[1]][2]
-    print(result)
+    #print(result)
     if(grepl("/", result, fixed = TRUE)){
       test = str_replace_all(test,result,str_replace_all(result,"/","Herbstferien"))
     }
@@ -69,7 +76,7 @@ for(b in bundesland){#Durchläuft jedes Bundesland
     pattern <- "Sommerferien\\s*(.*?)\\s*Herbstferien"
     result <- regmatches(test, regexec(pattern, test))
     result <- result[[1]][2]
-    print(result)
+    #print(result)
     if(grepl("/", result, fixed = TRUE)){
       test = str_replace_all(test,result,str_replace_all(result,"/","Sommerferien"))
     }
@@ -77,7 +84,7 @@ for(b in bundesland){#Durchläuft jedes Bundesland
     pattern <- "Osterferien\\s*(.*?)\\s*Pfingstferien"
     result <- regmatches(test, regexec(pattern, test))
     result <- result[[1]][2]
-    print(result)
+    #print(result)
     if(grepl("/", result, fixed = TRUE)){
       test = str_replace_all(test,result,str_replace_all(result,"/","Osterferien"))
     }
@@ -135,9 +142,14 @@ remove(allYears,characters,Datum,j,k,l,m,Ferien,numbers,site,test,year_add,umsat
 
 ferientage$Ferien <- str_replace_all(ferientage$Ferien, "\\(?[a-zA-Z]+\\)?", "1")
 
-#ferientage <- dplyr::select(ferientage, -contains("2020"))
-#dplyr::select(ferientage, contains('2020')) 
+ferientage_bundeslaender <- filter(ferientage, Datum <= "2019-12-31")
 
-ferientage <- filter(ferientage, Datum <= "2019-12-31")
+remove(ferientage)
 
+#Falls nicht vorhanden, um erneutes laden zu vermeiden, als csv speichern
+write.csv(ferientage_bundeslaender,"data/ferientage_bundeslaender_webseite.csv", append = FALSE, quote = TRUE, sep = ",",
+          eol = "\n", na = "NA", dec = ".", row.names = FALSE,
+          col.names = TRUE, qmethod = c("escape", "double"),
+          fileEncoding = "")
 
+}

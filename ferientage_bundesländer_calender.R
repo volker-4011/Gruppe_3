@@ -1,28 +1,32 @@
+#Hier fehlen in der Quelle leider die Daten aus 2013
+
+#Falls csv bereits vorhanden, laden
+if(file.exists("data/ferientage_bundeslaender_wikicalender.csv")){
+  ferientage_bundeslaender <- read_csv("data/ferientage_bundeslaender_wikicalender.csv")
+}else{
+  
+  dir.create("data/", recursive = TRUE)
+  
+
 #Laden aller benötigten Libaries
-library(ggplot2)
-library(readr)
-library(lubridate)
-library(dplyr)
-library(forcats)
-library(RCurl)
-library(readxl)
-library(ical)
-library(calendar)
-library(base)
+pkgs <- c("ggplot2","readr","lubridate","dplyr","forcats","RCurl","readxl","ical","calendar","base")
+
+for (pkg in pkgs) {
+  if (!require(pkg, character.only = TRUE)) {
+    install.packages(pkg)
+    library(pkg, character.only = TRUE)
+  }
+}
 #Laden aller benötigten Libaries
 
 
 #https://de.wikipedia.org/wiki/Liste_der_deutschen_Bundesländer_nach_Bevölkerung
 LaenderUndEinwohner <- read_csv("https://raw.githubusercontent.com/g3r1t/EDSML-Projekt/main/LaenderUndEinwohner.csv")
 
-
-
 Datum <- seq(as.Date("2013-07-01"),as.Date("2019-06-06"), by = "days")
 Jahresferien <- data.frame(matrix(ncol = (length(LaenderUndEinwohner$Bundesland) + 1), nrow = length(Datum)))
 colnames(Jahresferien) <- c("Datum", LaenderUndEinwohner$Bundesland)
 Jahresferien$Datum <- Datum
-
-
 
 #Alle benötigten Jahre als Vector aus dem Originaldatensatz
 options(timeout= 4000000) #Bei langsamer Verbindung, Verbindungszeit erhöhen
@@ -40,10 +44,6 @@ allYears <- unique(substr(umsatzdaten_ferien$Datum, 1, 4))
 }
 #Anlegen der Verzeichnisse
 
-
-
-
-
 #Download aller benötigten .ics-Kalenderdateien in dem zuvor angelegten Verzeichnissen
 for (year in allYears) {
   for (Bl in LaenderUndEinwohner$Bundesland) { #Für jedes Bundesland / Liste in LaenderUndEinwohner, Spalte Bundesländer als Vector
@@ -57,13 +57,7 @@ for (year in allYears) {
 }
 #Download aller benötigten .ics-Kalenderdateien in dem zuvor angelegten Verzeichnissen
 
-
-
-
-
-
 df <- data.frame() #Anlegen eines neuen Dataframes, zum herausfiltern der Daten
-
 
 #Lesen aller ics.-Kalenderdateien über die Jahre in das neue Dataframe df
 for(i in allYears){
@@ -78,8 +72,6 @@ for(i in allYears){
 }
 #Lesen aller ics.-Kalenderdateien über die Jahre in das neue Dataframe df
 
-
-
 #Umbenennung der Spaltennamen
 df <- rename(df,dtStart = "DTSTART;VALUE=DATE", dtEnde = "DTEND;VALUE=DATE", Bundesland = DESCRIPTION, FerienArt = SUMMARY)
 
@@ -92,10 +84,6 @@ df$Ferien <- str_replace_all(df$Ferien, "\\(?[a-zA-Z]+\\)?", "1") #Umwandlung in
 df$Bundesland <- str_replace_all(df$Bundesland, "Baden-WÃ¼rttemberg", "Baden-Wuerttemberg")
 df$Bundesland <- str_replace_all(df$Bundesland, "ThÃ¼ringen", "Thueringen")
 #Anpassen der Strings
-
-
-
-
 
 
 #Anlegen eines neuen Dataframe zum Herausfiltern der wesentlichen Daten
@@ -134,17 +122,26 @@ dc <- data.frame(matrix(ncol = 4, nrow = 0))
 
 #Herausfiltern der Zwischen-Datumswerte
 for(i in 1:nrow(dm)) {
-  splitDate <- as.Date(as.Date(dm[i,1]):as.Date(dm[i,2]), origin="1970-01-01") #Gibt alle Datumsangaben zwischen Spalte1 und Spalte2 aus
+  Datum <- as.Date(as.Date(dm[i,1]):as.Date(dm[i,2]), origin="1970-01-01") #Gibt alle Datumsangaben zwischen Spalte1 und Spalte2 aus
   Bundesland <- dm[i,3]
   FerienArt <- dm[i,4]
   Ferien <- dm[i,5]
-  dc <- rbind(dc,data.frame(splitDate,Bundesland,FerienArt,Ferien)) #Einbinden in das neue Dataframe
+  dc <- rbind(dc,data.frame(Datum,Bundesland,FerienArt,Ferien)) #Einbinden in das neue Dataframe
 }
 #Herausfiltern der Zwischen-Datumswerte
 
-
+#Als dataframe speichern
 ferientage_bundeslaender <- data.frame(matrix(ncol = 4, nrow = 0))
-
 ferientage_bundeslaender <- dc
 
+#Entfernen nicht benötigter Variablen
 remove(dc,df,dm,Jahresferien,umsatzdaten_ferien,allYears,Bl,bundesland,Bundesland,Datum,Ferien,FerienArt,filedest,filename,files,i,j,splitDate,this_folder,url,x,year,create_folder)
+
+
+#Falls nicht vorhanden, um erneutes laden zu vermeiden, als csv speichern
+write.csv(ferientage_bundeslaender,"data/ferientage_bundeslaender_wikicalender.csv", append = FALSE, quote = TRUE, sep = ",",
+          eol = "\n", na = "NA", dec = ".", row.names = FALSE,
+          col.names = TRUE, qmethod = c("escape", "double"),
+          fileEncoding = "")
+
+}

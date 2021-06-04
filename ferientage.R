@@ -1,3 +1,10 @@
+#Falls csv bereits vorhanden, laden
+if(file.exists("data/ferientage_SH.csv")){
+  ferientage <- read_csv("data/ferientage_SH.csv")
+}else{
+  
+  dir.create("data/", recursive = TRUE)
+
 # Import needed libraries
 source("prep_environment.R")
 # Import turnover data
@@ -49,7 +56,7 @@ for(l in allYears){
   #######################################
   characters <- str_extract_all(test,"\\(?[a-zA-Z]+\\)?")[[1]] 
 
-  print(characters)
+  #print(characters)
   
   length(numbers)
   #######################################
@@ -68,16 +75,14 @@ for(l in allYears){
     Datum <- strsplit(Datum, split = " Y ") 
 
     Datum <-unlist(Datum, use.names=FALSE);
-    print(Datum) 
+    #print(Datum) 
     
     Datum <- as.Date(Datum, "%d.%m.%Y")  
-    print(Datum) 
+    #print(Datum) 
     
     Ferien <- characters[k]
 
- 
     if(length(Datum) > 1){
-      #Datum <- seq(as.Date(Datum[1]), as.Date(Datum[2]), by="days")
       Datum <- as.Date(as.Date(Datum[1]):as.Date(Datum[2]), origin="1970-01-01")
     }
  
@@ -93,10 +98,12 @@ for(l in allYears){
 remove(allYears,characters,Datum,j,k,l,m,Ferien,numbers,site,test,year_add,umsatzdaten_ferien)
 
 ferientage$Ferien <- str_replace_all(ferientage$Ferien, "\\(?[a-zA-Z]+\\)?", "1")
-
-#ferientage <- dplyr::select(ferientage, -contains("2020"))
-#dplyr::select(ferientage, contains('2020')) 
-
 ferientage <- filter(ferientage, Datum <= "2019-12-31")
 
-#write.csv(ferientage,"C:\\Users\\Peyman Farshidfar\\Documents\\ferientage.csv")
+#Falls nicht vorhanden, um erneutes laden zu vermeiden, als csv speichern
+write.csv(ferientage,"data/ferientage_SH.csv", append = FALSE, quote = TRUE, sep = ",",
+          eol = "\n", na = "NA", dec = ".", row.names = FALSE,
+          col.names = TRUE, qmethod = c("escape", "double"),
+          fileEncoding = "")
+
+}
