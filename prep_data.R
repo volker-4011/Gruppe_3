@@ -51,7 +51,8 @@
     wetter_dwd$Niederschlagsmenge <- as.numeric(wetter_dwd$Niederschlagsmenge)
     
     ####################################
-
+    
+    
     ###Vorbereitung für die Vorhersage: Zeilen für alle 6 Warengruppen hinzufügen für den ersten Tag, für den keine Umsatzdaten vorhanden sind
     d <- max(umsatzdaten$Datum)+1
     for(i in 1:6){
@@ -132,6 +133,7 @@
     fullData <- merge(fullData,ferientage, by="Datum", all.x = TRUE)
     fullData <- merge(fullData,feiertage, by="Datum", all.x = TRUE)
     
+    
     #merge over night stays with "fullData"
     #create column of "Monatscode" for each date of "fullData" to full_join() by "Monatscode"
     #for (e in as.numeric(row.names(fullData))) {
@@ -159,6 +161,8 @@
     #Extrahieren des Monats aus dem Datum und speichern in neuer Variablen
     fullData$Monat <- month(fullData$Datum)
     
+    fullData$Jahr <- format(fullData$Datum, "%Y")
+    
     #Hinzufügen neue Variable Wochenende
     fullData$Wochenende <- with(fullData, ifelse(Wochentag=="Sonntag" | Wochentag=="Samstag", 1, 0))
     
@@ -174,7 +178,31 @@
     fullData$Ferien <- as.numeric(fullData$Ferien)
     fullData$Feiertag <- as.numeric(fullData$Feiertag)
     
+    ###Einfügen der Variable Umsatz_naiv
+    #Umsatz_naiv der ersten Woche = Umsatz der ersten Woche
+    for(i in 1:42){
+      fullData$Umsatz_naiv[i] <- fullData$Umsatz[i]
+    }
     
+    #Umsatz für alle weiteren Tage = Umsatz von vor 1 Woche für die jeweilige Warengruppe, wenn Umsatz von vor einer Woche nicht vorhande --> Nutze Umsatz des jeweiligen Tages
+    ###Fehlende Einträge für Warengruppe 4 (Konditorei) mit Umsatz = Umsatz von vor 7 Tagen ausfüllen, da kein Grund bzw. zusammenhang für die fehlenden Umsätze erkannt wurde
+    for(i in 1:nrow(fullData)){
+      d_naiv <- fullData$Datum[i]-7
+      w6 <- any(fullData$Datum == d_naiv & fullData$Warengruppe == fullData$Warengruppe[i])
+      if (w6 == TRUE) {
+        fullData$Umsatz_naiv[i] <- fullData$Umsatz[fullData$Datum == d_naiv & fullData$Warengruppe == fullData$Warengruppe[i]]
+      } else {
+        fullData$Umsatz_naiv[i] <- fullData$Umsatz[i] 
+      }
+    }
+    
+   
+    ###Mittlerer umsatz pro Monat und Warengruppe
+    mean_umsatz <- aggregate(fullData[1:(nrow(fullData)-6), 3], list(fullData$Jahr[1:(nrow(fullData)-6)], fullData$Monat[1:(nrow(fullData)-6)], fullData$Warengruppe[1:(nrow(fullData)-6)]), mean)
+    
+    for(i in 1:nrow(fullData)){
+      fullData$Umsatz_mean[i] <- mean_umsatz$x[mean_umsatz$Group.1 == fullData$Jahr[i] & mean_umsatz$Group.2 == fullData$Monat[i] & mean_umsatz$Group.3 == fullData$Warengruppe[i]]
+    }
     #Daten in ein CSV speichern
     
 
@@ -205,7 +233,7 @@
 ########################Für Python/Tenser    
     writecsvData <- fullData
     writecsvData <- cbind(ID = 1:nrow(writecsvData), writecsvData)
-    
+
     write.csv(writecsvData,"fullData.csv", append = FALSE, quote = TRUE, sep = ",",
               eol = "\n", na = "NA", dec = ".", row.names = FALSE,
               col.names = TRUE, qmethod = c("escape", "double"),
