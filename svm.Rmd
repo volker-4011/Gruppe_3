@@ -27,11 +27,11 @@ source("prep_data.R")
 # Setting the random counter to a fixed value, so the random initialization stays the same (the random split is always the same)
 set.seed(1)
 # Shuffling the dataset (to get random orders within each dataset as well)
-new_row_order <- sample(nrow(fullData))
-fullData <- fullData_dummy[new_row_order,]
+new_row_order <- sample(nrow(fullData_dummy))
+fullData_dummy <- fullData_dummy[new_row_order,]
 # Assign each row number in the full dataset randomly to one of the three groups of datasets
 # The probability of being in one of the groups results then in crresponding group sizes
-assignment <- sample(1:2, size = nrow(fullData), prob = c(.9, .1), replace = TRUE)
+assignment <- sample(1:2, size = nrow(fullData_dummy), prob = c(.9, .1), replace = TRUE)
 # Create training and test datasets
 train_dataset <- fullData_dummy[assignment == 1, ]  # subset house_pricing to training indices only
 test_dataset <- fullData_dummy[assignment == 2, ]  # subset house_pricing to test indices only
@@ -52,22 +52,22 @@ train_dataset <- sample_frac(train_dataset, .10)
 # Optimization of an SVM with standard hyper parameters
 # Durch die dummy Variablen sind es mega viele Variablen. Ich weiß nicht, wie man die schöner in die svm gibt. Eine Liste akzeptiert die svm als Input nicht.
 model_svm <- svm(Umsatz ~ 
-                   Warengruppe_Brot +Warengruppe_Broetchen +Warengruppe_Crossaint +Warengruppe_Konditorei + Warengruppe_Kuchen +Warengruppe_Saisonbrot +
-                   Monat_1 + Monat_2 + Monat_3 + Monat_4 + Monat_5 + Monat_6 + Monat_7 + Monat_8 + Monat_9 + Monat_10 + Monat_11 + Monat_12 +
-                   Wochentag_Montag + Wochentag_Dienstag + Wochentag_Mittwoch + Wochentag_Donnerstag + Wochentag_Freitag + Wochentag_Samstag + Wochentag_Sonntag+
-                   Bewoelkung_1 +  Bewoelkung_2 +  Bewoelkung_3 +  Bewoelkung_4 +  Bewoelkung_5 +  Bewoelkung_6 +  Bewoelkung_7 +  Bewoelkung_8 + 
-                   Ferien + Feiertag + Wochenende , train_dataset)
+                   Warengruppe_Brot +Warengruppe_Broetchen +Warengruppe_Crossaint +Warengruppe_Konditorei + Warengruppe_Kuchen +
+                   Monat_1 + Monat_2 + Monat_3 + Monat_4 + Monat_5 + Monat_6 + Monat_7 + Monat_8 + Monat_9 + Monat_10 + Monat_11 +
+                   Wochentag_Montag + Wochentag_Dienstag + Wochentag_Mittwoch + Wochentag_Donnerstag + Wochentag_Freitag + Wochentag_Samstag +
+                   Bewoelkung_1 +  Bewoelkung_2 +  Bewoelkung_3 +  Bewoelkung_4 +  Bewoelkung_5 +  Bewoelkung_6 +  Bewoelkung_7 + 
+                   Ferien + Feiertag + Wochenende + Umsatz_naiv + Umsatz_mean, train_dataset)
 ```
 
 ```{r}
 # Optimization of various SVM using systematically varied hyper parameters (typically called 'grid search' approach) and cross validation
 # the resulting object includes the optimal model in the element named 'best.model'
-svm_tune <- tune(svm, Umsatz ~ Warengruppe_Brot +Warengruppe_Broetchen +Warengruppe_Crossaint +Warengruppe_Konditorei + Warengruppe_Kuchen +Warengruppe_Saisonbrot +
-                   Monat_1 + Monat_2 + Monat_3 + Monat_4 + Monat_5 + Monat_6 + Monat_7 + Monat_8 + Monat_9 + Monat_10 + Monat_11 + Monat_12 +
-                   Wochentag_Montag + Wochentag_Dienstag + Wochentag_Mittwoch + Wochentag_Donnerstag + Wochentag_Freitag + Wochentag_Samstag + Wochentag_Sonntag+
-                   Bewoelkung_1 +  Bewoelkung_2 +  Bewoelkung_3 +  Bewoelkung_4 +  Bewoelkung_5 +  Bewoelkung_6 +  Bewoelkung_7 +  Bewoelkung_8 + 
-                   Ferien + Feiertag + Wochenende , data=train_dataset,
-                 ranges = list(epsilon = seq(0.2,1,0.1), cost = 2^(2:3)))
+svm_tune <- tune(svm, Umsatz ~ Warengruppe_Brot +Warengruppe_Broetchen +Warengruppe_Crossaint +Warengruppe_Konditorei + Warengruppe_Kuchen +
+                   Monat_1 + Monat_2 + Monat_3 + Monat_4 + Monat_5 + Monat_6 + Monat_7 + Monat_8 + Monat_9 + Monat_10 + Monat_11 +
+                   Wochentag_Montag + Wochentag_Dienstag + Wochentag_Mittwoch + Wochentag_Donnerstag + Wochentag_Freitag + Wochentag_Samstag +
+                   Bewoelkung_1 +  Bewoelkung_2 +  Bewoelkung_3 +  Bewoelkung_4 +  Bewoelkung_5 +  Bewoelkung_6 +  Bewoelkung_7 + 
+                   Ferien + Feiertag + Wochenende + Umsatz_naiv + Umsatz_mean, data=train_dataset,
+                 ranges = list(epsilon = seq(0.1,1,0.1), cost = seq(1,5,0.5))) #2^(-2:3)
 
 #Auskommentieren, wenn Modell gespeichert werden soll.
 #saveRDS(svm_tune, "svm_tune1.rds")
@@ -118,6 +118,19 @@ mape(test_dataset$Umsatz, pred_test)
 SVM with a standard hyperparameters
 ```{r}
 # Calculating the prediction for the new data (next day) using the best model according to the grid search
-pred_new <- predict(svm_tune$best.model, newData)
-pred_new
+Umsatz_predicted <- predict(svm_tune$best.model, newData)
+prediction <- data.frame(Umsatz_predicted)
+prediction$Warengruppe <- newData$Warengruppe
+prediction$Datum <- newData$Datum
+prediction$Monat <- newData$Monat
+
+##Da das Saisonbrot nur im Oktober, November oder Dezember verkauft wird, überprüfen, ob sich Vorhersagedatum in dem Zeitraum befindet, ansonsten Umsatz_predicted = 0 setzen
+for (i in 1:nrow(prediction)){
+  if ((!(prediction$Monat[i]==10 | prediction$Monat[i]==11 | prediction$Monat[i]==12)) & prediction$Warengruppe[i]=="Saisonbrot") {
+    prediction$Umsatz_predicted[i] <- 0
+  }
+}
+#prediction$Umsatz_predicted[prediction$Warengruppe == "Saisonbrot"] <- with(prediction, ifelse(Monat==10 | Monat==11 | #Monat==12, Umsatz_predicted , 0))
+
+prediction
 ```
