@@ -69,8 +69,8 @@ wochentag_dummies = c("Wochentag_Dienstag","Wochentag_Donnerstag","Wochentag_Fre
                       "Wochentag_Mittwoch","Wochentag_Montag","Wochentag_Samstag","Wochentag_Sonntag")
 warengruppe_dummies = c("Warengruppe_Broetchen","Warengruppe_Brot","Warengruppe_Crossaint","Warengruppe_Konditorei"
                         ,"Warengruppe_Kuchen","Warengruppe_Saisonbrot")
-#bewoelkung_dummies = c("Bewoelkung_0","Bewoelkung_1","Bewoelkung_2","Bewoelkung_3","Bewoelkung_4","Bewoelkung_5"
-#                       ,"Bewoelkung_6","Bewoelkung_7","Bewoelkung_8","Bewoelkung_NA")
+bewoelkung_dummies = c("Bewoelkung_0","Bewoelkung_1","Bewoelkung_2","Bewoelkung_3","Bewoelkung_4","Bewoelkung_5"
+                       ,"Bewoelkung_6","Bewoelkung_7","Bewoelkung_8","Bewoelkung_NA")
 
 #Spalten in numerische Zahlen umwandeln
 for(i in 1:ncol(fullData_dummy)) {       # for-loop over columns
