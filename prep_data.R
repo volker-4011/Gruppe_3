@@ -17,9 +17,7 @@
     wetter <- read_csv(wetter_source)
     kiwo <- read_csv(kiwo_source)
     wetter_dwd <- read_delim(wetter_dwd_source, delim = ";")
-    #ferientage <- read_csv("ferientage.csv")
-    #feiertage <- read_csv("feiertage.csv")
-    
+
     source("https://raw.githubusercontent.com/volker-4011/Gruppe_3/main/ferientage.R", encoding = "UTF-8")
     source("https://raw.githubusercontent.com/volker-4011/Gruppe_3/main/feiertage.R", encoding = "UTF-8")
     
