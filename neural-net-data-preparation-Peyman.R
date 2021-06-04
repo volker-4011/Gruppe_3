@@ -23,7 +23,7 @@ for (pkg in pkgs) {
 # Importing Function Packages
 source("prep_environment.R")
 
-# Importing Datenaufbereitung
+# Import der Daten
 
 if(!file.exists("fullData.csv")){
   source("prep_data.R")
@@ -32,14 +32,9 @@ if(!file.exists("fullData.csv")){
 testData <- read_csv("fullData.csv")
 
 
-
-str(testData)
-
+#str(testData)
 
 
-
-
-str(testData)
 #########################
 
 ###Vorbereiten des Dataframe für die Vorhersage
@@ -49,18 +44,8 @@ str(testData)
 dummy_list <- c("Monat", "Wochentag", "Warengruppe" , "Bewoelkung")
 fullData_dummy = dummy_cols(testData, dummy_list)
 
-#Löschen der Daten für den Tag, der vorhergesagt werden soll aus den Trainingsdaten
-fullData_dummy <- subset(fullData_dummy, Datum != "2019-06-07")
 
-# alle NAs durch 0 ersetzen, damit die svm läuft
-# ist nicht die feine Art, wir müssen uns nochmal genauer um die NAs kümmern.
-fullData_dummy[is.na(fullData_dummy)] <- 0
-
-
-
-
-
-names(fullData_dummy)
+#names(fullData_dummy)
 
 #deleteColumns <- data.frame(x=2, y=4:7, z=9:11, a=4)
 fullData_dummy <- subset (fullData_dummy, select = -c(15:16))
@@ -90,7 +75,7 @@ warengruppe_dummies = c("Warengruppe_Broetchen","Warengruppe_Brot","Warengruppe_
 #Spalten in numerische Zahlen umwandeln
 for(i in 1:ncol(fullData_dummy)) {       # for-loop over columns
   columnType <- typeof(fullData_dummy[ , i])
-  print(columnType)
+  #print(columnType)
   if(columnType == "integer" || columnType == "num"){
     fullData_dummy[ , i] <- as.double(fullData_dummy[ , i])
   }
@@ -99,7 +84,11 @@ for(i in 1:ncol(fullData_dummy)) {       # for-loop over columns
 
 
 # Look at the data
-str(fullData_dummy)
+#str(fullData_dummy)
+
+
+
+
 
 
 
@@ -117,7 +106,7 @@ labels <- 'Umsatz'
 ### Selection of Training, Validation and Test Data ####
 
 # Look at the data
-str(fullData_dummy)
+#str(fullData_dummy)
 
 # Setting the random counter to a fixed value, so the random initialization stays the same (the random split is always the same)
 set.seed(1)
@@ -126,9 +115,32 @@ set.seed(1)
 new_row_order <- sample(nrow(fullData_dummy))
 fullData_dummy <- fullData_dummy[new_row_order, ]
 
+
+# alle NAs durch 0 ersetzen, damit die svm läuft
+# ist nicht die feine Art, wir müssen uns nochmal genauer um die NAs kümmern.
+fullData_dummy[is.na(fullData_dummy)] <- 0
+
+newData <- rbind(fullData_dummy[fullData_dummy$Datum == "2019-06-07", ])
+
+fullData_dummy <- rbind(fullData_dummy[fullData_dummy$Datum != "2019-06-07", ])
+#Löschen der Daten für den Tag, der vorhergesagt werden soll aus den Trainingsdaten
+fullData_dummy <- subset(fullData_dummy, Datum != "2019-06-07")
+
+
+
+
+
+
+
+
+
+
+
+
 # Assign each row number in the full dataset randomly to one of the three groups of datasets
 # The probability of being in one of the groups results then in crresponding group sizes
 assignment <- sample(1:3, size = nrow(fullData_dummy), prob = c(.7, .2, .1), replace = TRUE)
+#assignmentV <- sample(1:3, size = nrow(newData), prob = c(.7, .2, .1), replace = TRUE)
 
 # Create training, validation and test data for the features and the labels
 training_features <- fullData_dummy[assignment == 1, features]    # subset house_pricing to training indices only
@@ -137,23 +149,13 @@ training_labels <- fullData_dummy[assignment == 1, labels]    # subset house_pri
 validation_features <- fullData_dummy[assignment == 2, features]  # subset house_pricing to validation indices only
 validation_labels <- fullData_dummy[assignment == 2, labels]  # subset house_pricing to validation indices only
 
+#validation_features <- newData[assignment == 2, features]  # subset house_pricing to validation indices only
+#validation_labels <- newData[assignment == 2, labels]  # subset house_pricing to validation indices only
+
 test_features <- fullData_dummy[assignment == 3, features]   # subset house_pricing to test indices only
 test_labels <- fullData_dummy[assignment == 3, labels]   # subset house_pricing to test indices only
 
 
 
-str(training_features)
-str(training_labels)
-
-str(validation_features)
-str(validation_labels)
-
-str(test_features)
-str(test_labels)
-
-
-
-
-#fullData_dummy$Monat_1 <- cols(Monat_1 = col_double())
 
 

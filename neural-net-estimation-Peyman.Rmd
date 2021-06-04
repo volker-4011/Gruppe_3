@@ -88,11 +88,11 @@ model.summary()
 
 
 ```{r}
-str(training_features)
-str(training_labels)
+#str(training_features)
+#str(training_labels)
 
-str(validation_features)
-str(validation_labels)
+#str(validation_features)
+#str(validation_labels)
 ```
 
 
@@ -136,10 +136,24 @@ model = tf.keras.models.load_model("python_model.h5")
 
 ### Auswertung der Schätzergebnisse ###
 ```{r}
+#Test
+colnamesPred <- colnames(validation_features)
+colnamesPred
+typeof(colnamesPred)
+validation_features2 <- newData[colnamesPred]
+#validation_features2 <- merge(validation_features,validation_features2, by="Feiertag")
+#Test
+
+
+
 # Schätzung der (normierten) Preise für die Trainings- und Testdaten
 training_predictions <- py$model$predict(training_features)
-validation_predictions <- py$model$predict(validation_features)
+validation_predictions <- py$model$predict(validation_features2)
 # Vergleich der Gütekriterien für die Traingings- und Testdaten
+
+
+validation_predictions
+
 cat(paste0("MAPE on the Training Data:\t", format(mape(training_labels[[1]], training_predictions)*100, digits=3, nsmall=2)))
 cat(paste0("\nMAPE on the Validation Data:\t", format(mape(validation_labels[[1]], validation_predictions)*100, digits=3, nsmall=2)))
 ```
