@@ -22,10 +22,7 @@
     source("https://raw.githubusercontent.com/volker-4011/Gruppe_3/main/feiertage.R", encoding = "UTF-8")
     
     #####################################################
-    
-    
-    
-    
+
     
     ##################Windgeschwindigkeit Kategorisieren
     #Kategorisierung nach https://www.wind-turbine-models.com/winds
@@ -42,12 +39,7 @@
       else if(checkWind > as.numeric(38) && checkWind <= as.numeric(49)){wetter$Windgeschwindigkeit[i] <- "starker_Wind"}
     } 
     ##################Windgeschwindigkeit Kategorisieren
-    
-    
-    
-    
-    
-    
+
     
     #Bearbeiten von wetter_dwd
     wetter_dwd$MESS_DATUM <- as.Date(wetter_dwd$MESS_DATUM, "%d.%m.%Y")
@@ -247,16 +239,18 @@
     ###Vorbereiten des Dataframe für die Vorhersage
     
     #Dummy Encoden der Variablen für die Vorhersage
-    str(fullData)
-    #dummy_list <- c("Monat", "Wochentag", "Warengruppe" , "Bewoelkung", "Windgeschwindigkeit")
-    #fullData_dummy = dummy_cols(fullData, dummy_list)
+    dummy_list <- c("Monat", "Wochentag", "Warengruppe" , "Bewoelkung", "Windgeschwindigkeit")
+    fullData_dummy = dummy_cols(fullData, dummy_list)
     
     
     
-    fullData$Windgeschwindigkeit[is.na(fullData$Windgeschwindigkeit)] <- "Windstille" #3 als Standardwert für nicht vorhandene Daten
+    #fullData$Windgeschwindigkeit[is.na(fullData$Windgeschwindigkeit)] <- "Windstille" #3 als Standardwert für nicht vorhandene Daten
     
-    fullData_dummy <- dummy_cols(fullData, select_columns = c("Warengruppe" , "Bewoelkung", "Windgeschwindigkeit", "Monat", "Wochentag"))
-    fullData_dummy <- dummy_cols(fullData_dummy, select_columns = "Wochentag")
+    #fullData_dummy1 <- dummy_cols(fullData, select_columns = c("Warengruppe" , "Bewoelkung", "Windgeschwindigkeit"))
+  
+    #fullData_dummy2 <- dummy_cols(fullData, select_columns =  c("Monat", "Wochentag"))
+    
+    #fullData_dummy <- merge(fullData_dummy1,fullData_dummy2, by="Datum")
     
     #Dataframe für nächsten Tag erstellen (für die Vorhersage)  
     
