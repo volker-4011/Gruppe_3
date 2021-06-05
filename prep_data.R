@@ -23,6 +23,32 @@
     
     #####################################################
     
+    
+    
+    
+    
+    ##################Windgeschwindigkeit Kategorisieren
+    #Kategorisierung nach https://www.wind-turbine-models.com/winds
+    wetter$Windgeschwindigkeit[is.na(wetter$Windgeschwindigkeit)] <- as.numeric(3) #3 als Standardwert für nicht vorhandene Daten
+    
+    for (i in as.numeric(row.names(wetter))){
+      checkWind <- as.numeric(wetter$Windgeschwindigkeit[i])
+      
+      if(checkWind <= as.numeric(5)){wetter$Windgeschwindigkeit[i] <- "Windstille"}
+      else if(checkWind > as.numeric(5) && checkWind <= as.numeric(11)){wetter$Windgeschwindigkeit[i] <- "leichte_Briese"}
+      else if(checkWind > as.numeric(11) && checkWind <= as.numeric(19)){wetter$Windgeschwindigkeit[i] <- "schwache_Briese"}
+      else if(checkWind > as.numeric(19) && checkWind <= as.numeric(28)){wetter$Windgeschwindigkeit[i] <- "maessige_Briese"}
+      else if(checkWind > as.numeric(28) && checkWind <= as.numeric(38)){wetter$Windgeschwindigkeit[i] <- "frische_Briese"}
+      else if(checkWind > as.numeric(38) && checkWind <= as.numeric(49)){wetter$Windgeschwindigkeit[i] <- "starker_Wind"}
+    } 
+    ##################Windgeschwindigkeit Kategorisieren
+    
+    
+    
+    
+    
+    
+    
     #Bearbeiten von wetter_dwd
     wetter_dwd$MESS_DATUM <- as.Date(wetter_dwd$MESS_DATUM, "%d.%m.%Y")
     wetter_dwd <- dplyr::rename(wetter_dwd, Datum = MESS_DATUM)
@@ -160,7 +186,7 @@
     ###Optimierung der Daten/ Hinzufügen neuer Variablen
     
     #Windchillfaktor berechnen und hinzufügen (gefühlte Temperatur für unteren Temperaturbereich)
-    fullData$Windchill <- with(fullData, 13.12+0.6215*Temperatur+(0.3965*Temperatur-11.37)*Windgeschwindigkeit^0.16)
+   # fullData$Windchill <- with(fullData, 13.12+0.6215*Temperatur+(0.3965*Temperatur-11.37)*Windgeschwindigkeit^0.16)
     
     # Warengruppennummer in Warengruppenname uebersetzen
     # 1=Brot, 2=Broetchen, 3=Crossaint, 4=Konditorei, 5=Kuchen, 6=Saisonbrot
@@ -226,11 +252,16 @@
     ###Vorbereiten des Dataframe für die Vorhersage
     
     #Dummy Encoden der Variablen für die Vorhersage
+    str(fullData)
+    #dummy_list <- c("Monat", "Wochentag", "Warengruppe" , "Bewoelkung", "Windgeschwindigkeit")
+    #fullData_dummy = dummy_cols(fullData, dummy_list)
     
-    dummy_list <- c("Monat", "Wochentag", "Warengruppe" , "Bewoelkung")
-    fullData_dummy = dummy_cols(fullData, dummy_list)
     
     
+    fullData$Windgeschwindigkeit[is.na(fullData$Windgeschwindigkeit)] <- "Windstille" #3 als Standardwert für nicht vorhandene Daten
+    
+    fullData_dummy <- dummy_cols(fullData, select_columns = c("Warengruppe" , "Bewoelkung", "Windgeschwindigkeit", "Monat", "Wochentag"))
+    fullData_dummy <- dummy_cols(fullData_dummy, select_columns = "Wochentag")
     
     #Dataframe für nächsten Tag erstellen (für die Vorhersage)  
     
