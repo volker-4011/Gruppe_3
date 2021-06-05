@@ -25,10 +25,10 @@ source("prep_environment.R")
 
 # Import der Daten
 
-if(!file.exists("fullData.csv")){
-  source("prep_data.R")
-}
-
+#if(!file.exists("fullData.csv")){
+#  source("prep_data.R")
+#}
+source("prep_data.R")
 testData <- read_csv("fullData.csv")
 
 
@@ -41,19 +41,32 @@ testData <- read_csv("fullData.csv")
 
 #Dummy Encoden der Variablen für die Vorhersage
 
-dummy_list <- c("Monat", "Wochentag", "Warengruppe" , "Bewoelkung")
+dummy_list <- c("Monat", "Wochentag", "Warengruppe" , "Bewoelkung", "Windgeschwindigkeit", "Temperatur", "Niederschlagsmenge")
 fullData_dummy = dummy_cols(testData, dummy_list)
 
 
 #names(fullData_dummy)
 
 #deleteColumns <- data.frame(x=2, y=4:7, z=9:11, a=4)
-fullData_dummy <- subset (fullData_dummy, select = -c(15:16))
-fullData_dummy <- subset (fullData_dummy, select = -c(10:12))
-fullData_dummy <- subset (fullData_dummy, select = -c(5:8))
-fullData_dummy <- subset (fullData_dummy, select = -c(3))
+#fullData_dummy <- subset (fullData_dummy, select = -c(15:16))
+#fullData_dummy <- subset (fullData_dummy, select = -c(10:12))
+#fullData_dummy <- subset (fullData_dummy, select = -c(5:8))
+#fullData_dummy <- subset (fullData_dummy, select = -c(3))
 
 
+
+colnames(fullData_dummy)
+
+
+
+fullData_dummy[ , c('Wettercode',
+                'Relative_Feuchte',
+                'Sonnenscheindauer',
+                'Temperatur',
+                'Wochentag', 
+                'Windgeschwindigkeit',
+                'Warengruppe' 
+)] <- list(NULL)
 
 ###################################################
 ### Data Preparation ####
@@ -72,6 +85,15 @@ warengruppe_dummies = c("Warengruppe_Broetchen","Warengruppe_Brot","Warengruppe_
 bewoelkung_dummies = c("Bewoelkung_0","Bewoelkung_1","Bewoelkung_2","Bewoelkung_3","Bewoelkung_4","Bewoelkung_5"
                        ,"Bewoelkung_6","Bewoelkung_7","Bewoelkung_8","Bewoelkung_NA")
 
+windgeschwindigkeit_dummies = c("Windgeschwindigkeit_frische_Briese","Windgeschwindigkeit_leichte_Briese","Windgeschwindigkeit_maessige_Briese", 
+                                "Windgeschwindigkeit_schwache_Briese", "Windgeschwindigkeit_Windstille", "Windgeschwindigkeit_NA")
+
+temperatur_dummies = c("Temperatur_Eisig","Temperatur_Fruehling","Temperatur_Heisser_Tag","Temperatur_Kalter_Tag","Temperatur_Sommertag",
+                       "Temperatur_Vegetationstag","Temperatur_NA")
+
+niederschlag_dummies = c("Niederschlagsmenge_1","Niederschlagsmenge_2","Niederschlagsmenge_3","Niederschlagsmenge_4","Niederschlagsmenge_5")
+
+
 #Spalten in numerische Zahlen umwandeln
 for(i in 1:ncol(fullData_dummy)) {       # for-loop over columns
   columnType <- typeof(fullData_dummy[ , i])
@@ -84,9 +106,9 @@ for(i in 1:ncol(fullData_dummy)) {       # for-loop over columns
 
 
 # Look at the data
-#str(fullData_dummy)
+str(fullData_dummy)
 
-
+colnames(fullData_dummy)
 
 
 
@@ -97,7 +119,8 @@ for(i in 1:ncol(fullData_dummy)) {       # for-loop over columns
 
 # Selection of the features (the independent variables used to predict the dependent)
 #features <- c('sqft_lot', 'waterfront', 'grade', 'bathrooms', view_dummies, condition_dummies)
-features <- c('Ferien', 'Feiertag','Wochenende',bewoelkung_dummies,monat_dummies, wochentag_dummies, warengruppe_dummies)
+features <- c('Ferien', 'Feiertag','Wochenende', 'KielerWoche',bewoelkung_dummies,monat_dummies, 
+              wochentag_dummies, warengruppe_dummies,windgeschwindigkeit_dummies,temperatur_dummies,niederschlag_dummies)
 # Selection of the label (the dependent variable)
 labels <- 'Umsatz'
 
@@ -125,11 +148,6 @@ newData <- rbind(fullData_dummy[fullData_dummy$Datum == "2019-06-07", ])
 fullData_dummy <- rbind(fullData_dummy[fullData_dummy$Datum != "2019-06-07", ])
 #Löschen der Daten für den Tag, der vorhergesagt werden soll aus den Trainingsdaten
 fullData_dummy <- subset(fullData_dummy, Datum != "2019-06-07")
-
-
-
-
-
 
 
 
