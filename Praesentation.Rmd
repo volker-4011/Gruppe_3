@@ -1,0 +1,135 @@
+---
+title: "Bakery Prediction"
+author: Peyman Farshidfar, Gerit Imhoff, Pia Fragge, Volker Paatz
+output: html_notebook
+---
+
+```{r}
+# Importing Function Packages
+source("prep_environment.R")
+# Importing Datenaufbereitung
+source("prep_data.R")
+
+```
+# Variablen/ Grafen
+
+```{r}
+# To be filled
+
+```
+
+# SVM Prediction
+## Splitting Training and Test Data
+
+```{r}
+# Setting the random counter to a fixed value, so the random initialization stays the same (the random split is always the same)
+set.seed(1)
+# Shuffling the dataset (to get random orders within each dataset as well)
+new_row_order <- sample(nrow(fullData_dummy))
+fullData_dummy <- fullData_dummy[new_row_order,]
+# Assign each row number in the full dataset randomly to one of the three groups of datasets
+# The probability of being in one of the groups results then in crresponding group sizes
+assignment <- sample(1:2, size = nrow(fullData_dummy), prob = c(.9, .1), replace = TRUE)
+# Create training and test datasets
+train_dataset <- fullData_dummy[assignment == 1, ]  # subset house_pricing to training indices only
+test_dataset <- fullData_dummy[assignment == 2, ]  # subset house_pricing to test indices only
+```
+
+
+## Data Preparation
+
+```{r}
+# Uncomment the next line if you want to check the correctness of your following code for the svm estimation with a small (and computationally fast) part of the training data set
+train_dataset <- sample_frac(train_dataset, .10)
+```
+
+
+## Training the SVM
+
+SVM with hyper paramter tuning via grid search and cross validation
+
+```{r}
+svm_tune <- tune(svm, Umsatz ~ Warengruppe_Brot +Warengruppe_Broetchen +Warengruppe_Crossaint +Warengruppe_Konditorei + Warengruppe_Kuchen +
+                   Monat_1 + Monat_2 + Monat_3 + Monat_4 + Monat_5 + Monat_6 + Monat_7 + Monat_8 + Monat_9 + Monat_10 + Monat_11 +
+                   Wochentag_Montag + Wochentag_Dienstag + Wochentag_Mittwoch + Wochentag_Donnerstag + Wochentag_Freitag + Wochentag_Samstag +
+                   Bewoelkung_1 +  Bewoelkung_2 +  Bewoelkung_3 +  Bewoelkung_4 +  Bewoelkung_5 +  Bewoelkung_6 +  Bewoelkung_7 + 
+                   Ferien + Feiertag + Wochenende + Umsatz_naiv + Umsatz_mean, data=train_dataset,
+                 ranges = list(epsilon = seq(0.1,1,0.1), cost = seq(1,5,0.5))) #2^(-2:3) 
+
+##Auskommentieren, wenn Modell gespeichert werden soll.
+#saveRDS(svm_tune, "svm_tune1.rds")
+#readRDS("svm_tune1.rds")
+
+svm_tune$best.model
+```
+
+
+## Checking the Prediction Quality
+
+
+### Trainig Data
+
+SVM with hyperparameters tuned via grid search and cross validation
+```{r}
+# Calculating the prediction for the training data using the best model according to the grid search
+pred_train <- predict(svm_tune$best.model, train_dataset)
+# Calculating the prediction quality for the training data using the MAPE
+mape(train_dataset$Umsatz, pred_train)
+```
+Grafische Darstellung der Ergebnisse
+```{r}
+# Bargraph der mittleren Umsatzdaten nach Wochentag pro Warengruppe
+train_dataset$pred <- pred_train
+
+ggplot(train_dataset)+
+  geom_line( aes(x =Datum, y = Umsatz, colour="skyblue"), stat="summary", fun="mean")+
+  geom_line( aes(x =Datum, y = pred, colour="orange"), stat="summary", fun="mean")+
+  xlab("Datum") + ylab("Umsatz") +
+  facet_wrap(~Warengruppe , scales="free")+
+  scale_color_discrete(name = "Umsatz", labels = c("vorhergesagt", "tatsächlich"))
+```
+
+### Test Data
+
+SVM with hyperparameters tuned via grid search and cross validation
+```{r}
+# Calculating the prediction for the test data using the best model according to the grid search
+pred_test <- predict(svm_tune$best.model, test_dataset)
+# Calculating the prediction quality for the test data using the MAPE
+mape(test_dataset$Umsatz, pred_test)
+```
+Grafische Darstellung der Ergebnisse
+```{r}
+# Bargraph der mittleren Umsatzdaten nach Wochentag pro Warengruppe
+test_dataset$pred <- pred_test
+
+ggplot(test_dataset)+
+  geom_line( aes(x =Datum, y = Umsatz, colour="skyblue"), stat="summary", fun="mean")+
+  geom_line( aes(x =Datum, y = pred, colour="orange"), stat="summary", fun="mean")+
+  xlab("Datum") + ylab("Umsatz") +
+  facet_wrap(~Warengruppe , scales="free")+
+  scale_color_discrete(name = "Umsatz", labels = c("vorhergesagt", "tatsächlich"))
+```
+
+### New Data
+
+SVM with a standard hyperparameters
+```{r}
+# Calculating the prediction for the new data (next day) using the best model according to the grid search
+Umsatz_predicted <- predict(svm_tune$best.model, newData)
+prediction <- data.frame(Umsatz_predicted)
+prediction$Warengruppe <- newData$Warengruppe
+prediction$Datum <- newData$Datum
+prediction$Monat <- newData$Monat
+
+##Da das Saisonbrot nur im Oktober, November oder Dezember verkauft wird, überprüfen, ob sich Vorhersagedatum in dem Zeitraum befindet, ansonsten Umsatz_predicted = 0 setzen
+for (i in 1:nrow(prediction)){
+  if ((!(prediction$Monat[i]==10 | prediction$Monat[i]==11 | prediction$Monat[i]==12)) & prediction$Warengruppe[i]=="Saisonbrot") {
+    prediction$Umsatz_predicted[i] <- 0
+  }
+}
+
+prediction
+```
+
+# Neuronales Netz
