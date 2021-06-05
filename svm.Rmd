@@ -1,5 +1,6 @@
 ---
 title: "SVM Prediction"
+author: Peyman Farshidfar, Gerit Imhoff, Pia Fragge, Volker Paatz
 output: html_notebook
 ---
 
@@ -39,9 +40,9 @@ train_dataset <- sample_frac(train_dataset, .10)
 
 ## Training the SVM
 
-```{r}
+```{r echo=FALSE}
 # Optimization of an SVM with standard hyper parameters
-# Durch die dummy Variablen sind es mega viele Variablen. Ich weiß nicht, wie man die schöner in die svm gibt. Eine Liste akzeptiert die svm als Input nicht.
+# Durch die dummy Variablen sind es viele Variablen.
 model_svm <- svm(Umsatz ~ 
                    Warengruppe_Brot +Warengruppe_Broetchen +Warengruppe_Crossaint +Warengruppe_Konditorei + Warengruppe_Kuchen +
                    Monat_1 + Monat_2 + Monat_3 + Monat_4 + Monat_5 + Monat_6 + Monat_7 + Monat_8 + Monat_9 + Monat_10 + Monat_11 +
@@ -50,36 +51,38 @@ model_svm <- svm(Umsatz ~
                    Ferien + Feiertag + Wochenende + Umsatz_naiv + Umsatz_mean, train_dataset)
 ```
 
+SVM with hyper paramter tuning via grid search and cross validation
+
 ```{r}
-# Optimization of various SVM using systematically varied hyper parameters (typically called 'grid search' approach) and cross validation
-# the resulting object includes the optimal model in the element named 'best.model'
 svm_tune <- tune(svm, Umsatz ~ Warengruppe_Brot +Warengruppe_Broetchen +Warengruppe_Crossaint +Warengruppe_Konditorei + Warengruppe_Kuchen +
                    Monat_1 + Monat_2 + Monat_3 + Monat_4 + Monat_5 + Monat_6 + Monat_7 + Monat_8 + Monat_9 + Monat_10 + Monat_11 +
                    Wochentag_Montag + Wochentag_Dienstag + Wochentag_Mittwoch + Wochentag_Donnerstag + Wochentag_Freitag + Wochentag_Samstag +
                    Bewoelkung_1 +  Bewoelkung_2 +  Bewoelkung_3 +  Bewoelkung_4 +  Bewoelkung_5 +  Bewoelkung_6 +  Bewoelkung_7 + 
                    Ferien + Feiertag + Wochenende + Umsatz_naiv + Umsatz_mean, data=train_dataset,
-                 ranges = list(epsilon = seq(0.1,1,0.1), cost = seq(1,5,0.5))) #2^(-2:3)
-svm_tune$best.model
+                 ranges = list(epsilon = seq(0.1,1,0.1), cost = seq(1,5,0.5))) #2^(-2:3) 
 
-#Auskommentieren, wenn Modell gespeichert werden soll.
+##Auskommentieren, wenn Modell gespeichert werden soll.
 #saveRDS(svm_tune, "svm_tune1.rds")
 #readRDS("svm_tune1.rds")
+
+svm_tune$best.model
 ```
+
 
 ## Checking the Prediction Quality
 
 
 ### Trainig Data
 
-SVM with a standard hyperparameters
-```{r}
+<!-- SVM with a standard hyperparameters -->
+```{r echo=FALSE}
 # Calculating the prediction for the training data using the best model according to the grid search
 pred_train <- predict(model_svm, train_dataset)
 # Calculating the prediction quality for the training data using the MAPE
 mape(train_dataset$Umsatz, pred_train)
 ```
-Grafische Darstellung der Ergebnisse
-```{r}
+<!--Grafische Darstellung der Ergebnisse -->
+```{r echo=FALSE}
 # Bargraph der mittleren Umsatzdaten nach Wochentag pro Warengruppe
 train_dataset$pred <- pred_train
 
@@ -113,15 +116,15 @@ ggplot(train_dataset)+
 
 ### Test Data
 
-SVM with a standard hyperparameters
-```{r}
+<!--SVM with a standard hyperparameters -->
+```{r echo=FALSE}
 # Calculating the prediction for the validation data using the best model according to the grid search
 pred_test <- predict(model_svm, test_dataset)
 # Calculating the prediction quality for the validation data using the MAPE
 mape(test_dataset$Umsatz, pred_test)
 ```
-Grafische Darstellung der Ergebnisse
-```{r}
+<!--Grafische Darstellung der Ergebnisse -->
+```{r echo=FALSE}
 # Bargraph der mittleren Umsatzdaten nach Wochentag pro Warengruppe
 test_dataset$pred <- pred_test
 
@@ -170,7 +173,6 @@ for (i in 1:nrow(prediction)){
     prediction$Umsatz_predicted[i] <- 0
   }
 }
-#prediction$Umsatz_predicted[prediction$Warengruppe == "Saisonbrot"] <- with(prediction, ifelse(Monat==10 | Monat==11 | #Monat==12, Umsatz_predicted , 0))
 
 prediction
 ```
