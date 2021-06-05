@@ -149,9 +149,6 @@ training_labels <- fullData_dummy[assignment == 1, labels]    # subset house_pri
 validation_features <- fullData_dummy[assignment == 2, features]  # subset house_pricing to validation indices only
 validation_labels <- fullData_dummy[assignment == 2, labels]  # subset house_pricing to validation indices only
 
-#validation_features <- newData[assignment == 2, features]  # subset house_pricing to validation indices only
-#validation_labels <- newData[assignment == 2, labels]  # subset house_pricing to validation indices only
-
 test_features <- fullData_dummy[assignment == 3, features]   # subset house_pricing to test indices only
 test_labels <- fullData_dummy[assignment == 3, labels]   # subset house_pricing to test indices only
 

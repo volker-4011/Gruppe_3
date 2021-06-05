@@ -9,7 +9,7 @@ output: html_document
 ### Installation von Python und TensorFlow (nur einmalig nötig)
 ```{r}
 #install.packages("reticulate")
-#library(reticulate)
+library(reticulate)
 # Installation von miniconda (falls nicht vorhanden)
 #install_miniconda(update=TRUE)
 # Anlegen einer speziellen Python Umgebung
@@ -42,30 +42,10 @@ library(Metrics)
 ```{python}
 # Import needed Python libraries and functions
 import numpy as np
-
-#training_features = np.asarray(training_features)
-#training_labels = np.asarray(training_labels)
-#validation_features = np.asarray(validation_features)
-#validation_labels = np.asarray(validation_labels)
-#test_features = np.asarray(test_features)
-#test_labels = np.asarray(test_labels)
-
-#training_features = np.array(training_features)
-#training_labels = np.array(training_labels)
-#validation_features = np.array(validation_features)
-#validation_labels = np.array(validation_labels)
-#test_features = np.array(test_features)
-#test_labels = np.array(test_labels)
-
-
 import tensorflow as tf
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.layers.experimental import preprocessing
-
-
-
-
 
 # Create a Normalization layer and use the means and variances of the training features for the normalization
 normalizer = preprocessing.Normalization()
@@ -75,7 +55,7 @@ inputs = tf.keras.Input(shape=[len(r.training_features.keys())])
 # Normalization layer
 x = normalizer(inputs)
 # 1st hidden layer
-x = Dense(10, activation='relu')(x)
+x = Dense(105, activation='relu')(x)
 # 2nd hidden layer
 x = Dense(4, activation='relu')(x)
 # Output layer
@@ -85,18 +65,6 @@ model = tf.keras.Model(inputs, output)
 # Ausgabe einer Zusammenfassung zur Form des Modells, das geschaetzt wird (nicht notwendig)
 model.summary()
 ```
-
-
-```{r}
-#str(training_features)
-#str(training_labels)
-
-#str(validation_features)
-#str(validation_labels)
-```
-
-
-
 
 
 ### Schätzung des neuronalen Netzes
@@ -134,6 +102,46 @@ model = tf.keras.models.load_model("python_model.h5")
 ```
 
 
+
+### Auswertung der Schätzergebnisse ###
+```{r}
+
+# Schätzung der (normierten) Preise für die Trainings- und Testdaten
+training_predictions <- py$model$predict(training_features)
+validation_predictions <- py$model$predict(validation_features)
+# Vergleich der Gütekriterien für die Traingings- und Testdaten
+
+
+cat(paste0("MAPE on the Training Data:\t", format(mape(training_labels[[1]], training_predictions)*100, digits=3, nsmall=2)))
+cat(paste0("\nMAPE on the Validation Data:\t", format(mape(validation_labels[[1]], validation_predictions)*100, digits=3, nsmall=2)))
+```
+```{r}
+## Grafischer vergleich der vorhergesagten und der tatsächlichen Preise für die Trainings- und Testdaten
+# Zusammenstellung der Daten für die Plots
+data_train <- data.frame(prediction = training_predictions/1000, actual = training_labels[[1]]/1000)
+data_test <- data.frame(prediction = validation_predictions/1000, actual = validation_labels[[1]]/1000)
+# Plot der Ergebnisse der Trainingsdaten
+ggplot(data_train[1:100,]) +
+  geom_line( aes(x=1:length(prediction), y=prediction, colour = "Predicted Values" )) +
+  geom_line( aes(x=1:length(actual), y=actual, colour = "Actual Values" )) +
+  scale_colour_manual( values = c("Predicted Values"="blue", "Actual Values"="red") ) +
+  labs(title="Predicted and Actual Values for the Training Data") +
+  xlab("Case Number") +
+  ylab("Price in 1.000 USD") 
+# Plot der Ergebnisse der Validierungsdaten
+ggplot(data_test[1:100,]) +
+  geom_line( aes(x=1:length(prediction), y=prediction, colour = "Predicted Values" )) +
+  geom_line( aes(x=1:length(actual), y=actual, colour = "Actual Values" )) +
+  scale_colour_manual( values = c("Predicted Values"="blue", "Actual Values"="red") ) +
+  labs(title="Predicted and Actual Values for the Test Data") +
+  xlab("Case Number") +
+  ylab("Price in 1.000 USD") 
+```
+
+
+
+
+
 ```{r}
 #Sortieren nach ID
 newData <- newData[order(newData$ID),]
@@ -159,42 +167,16 @@ training_features2
 ```{r}
 
 # Schätzung der (normierten) Preise für die Trainings- und Testdaten
-training_predictions <- py$model$predict(training_features2)
 validation_predictions <- py$model$predict(validation_features2)
-# Vergleich der Gütekriterien für die Traingings- und Testdaten
-
-
 validation_predictions
 
-cat(paste0("MAPE on the Training Data:\t", format(mape(training_labels[[1]], training_predictions)*100, digits=3, nsmall=2)))
-cat(paste0("\nMAPE on the Validation Data:\t", format(mape(validation_labels[[1]], validation_predictions)*100, digits=3, nsmall=2)))
+
 ```
 
-```{r}
-## Grafischer vergleich der vorhergesagten und der tatsächlichen Preise für die Trainings- und Testdaten
-# Zusammenstellung der Daten für die Plots
-data_train <- data.frame(prediction = training_predictions/1000, actual = training_labels[[1]]/1000)
-data_test <- data.frame(prediction = validation_predictions/1000, actual = validation_labels[[1]]/1000)
-# Plot der Ergebnisse der Trainingsdaten
-ggplot(data_train[1:100,]) +
-  geom_line( aes(x=1:length(prediction), y=prediction, colour = "Predicted Values" )) +
-  geom_line( aes(x=1:length(actual), y=actual, colour = "Actual Values" )) +
-  scale_colour_manual( values = c("Predicted Values"="blue", "Actual Values"="red") ) +
-  labs(title="Predicted and Actual Values for the Training Data") +
-  xlab("Case Number") +
-  ylab("Price in 1.000 USD") 
-# Plot der Ergebnisse der Validierungsdaten
-ggplot(data_test[1:100,]) +
-  geom_line( aes(x=1:length(prediction), y=prediction, colour = "Predicted Values" )) +
-  geom_line( aes(x=1:length(actual), y=actual, colour = "Actual Values" )) +
-  scale_colour_manual( values = c("Predicted Values"="blue", "Actual Values"="red") ) +
-  labs(title="Predicted and Actual Values for the Test Data") +
-  xlab("Case Number") +
-  ylab("Price in 1.000 USD") 
-```
+
 
 ```{r}
 # Vorhersage für einen einzelnen Fall
-cat(paste0("Vorhergesagter Umsatz:\t", round(validation_predictions[100])))
-cat(paste0("\nTatsächlicher Umsatz:\t", validation_labels[[1]][100]))
+#cat(paste0("Vorhergesagter Umsatz:\t", round(validation_predictions[100])))
+#cat(paste0("\nTatsächlicher Umsatz:\t", validation_labels[[1]][100]))
 ```
