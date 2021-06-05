@@ -167,11 +167,7 @@ training_features2
 ```{r}
 
 # Schätzung der (normierten) Preise für die Trainings- und Testdaten
-training_predictions <- py$model$predict(training_features2)
 validation_predictions <- py$model$predict(validation_features2)
-# Vergleich der Gütekriterien für die Traingings- und Testdaten
-
-
 validation_predictions
 
 
