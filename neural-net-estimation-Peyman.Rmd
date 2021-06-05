@@ -9,7 +9,7 @@ output: html_document
 ### Installation von Python und TensorFlow (nur einmalig nötig)
 ```{r}
 #install.packages("reticulate")
-#library(reticulate)
+library(reticulate)
 # Installation von miniconda (falls nicht vorhanden)
 #install_miniconda(update=TRUE)
 # Anlegen einer speziellen Python Umgebung
@@ -75,7 +75,7 @@ inputs = tf.keras.Input(shape=[len(r.training_features.keys())])
 # Normalization layer
 x = normalizer(inputs)
 # 1st hidden layer
-x = Dense(10, activation='relu')(x)
+x = Dense(105, activation='relu')(x)
 # 2nd hidden layer
 x = Dense(4, activation='relu')(x)
 # Output layer
@@ -134,6 +134,25 @@ model = tf.keras.models.load_model("python_model.h5")
 ```
 
 
+
+### Auswertung der Schätzergebnisse ###
+```{r}
+
+# Schätzung der (normierten) Preise für die Trainings- und Testdaten
+training_predictions <- py$model$predict(training_features)
+validation_predictions <- py$model$predict(validation_features)
+# Vergleich der Gütekriterien für die Traingings- und Testdaten
+
+
+cat(paste0("MAPE on the Training Data:\t", format(mape(training_labels[[1]], training_predictions)*100, digits=3, nsmall=2)))
+cat(paste0("\nMAPE on the Validation Data:\t", format(mape(validation_labels[[1]], validation_predictions)*100, digits=3, nsmall=2)))
+```
+
+
+
+
+
+
 ```{r}
 #Sortieren nach ID
 newData <- newData[order(newData$ID),]
@@ -166,8 +185,7 @@ validation_predictions <- py$model$predict(validation_features2)
 
 validation_predictions
 
-cat(paste0("MAPE on the Training Data:\t", format(mape(training_labels[[1]], training_predictions)*100, digits=3, nsmall=2)))
-cat(paste0("\nMAPE on the Validation Data:\t", format(mape(validation_labels[[1]], validation_predictions)*100, digits=3, nsmall=2)))
+
 ```
 
 ```{r}
@@ -195,6 +213,6 @@ ggplot(data_test[1:100,]) +
 
 ```{r}
 # Vorhersage für einen einzelnen Fall
-cat(paste0("Vorhergesagter Umsatz:\t", round(validation_predictions[100])))
-cat(paste0("\nTatsächlicher Umsatz:\t", validation_labels[[1]][100]))
+#cat(paste0("Vorhergesagter Umsatz:\t", round(validation_predictions[100])))
+#cat(paste0("\nTatsächlicher Umsatz:\t", validation_labels[[1]][100]))
 ```
