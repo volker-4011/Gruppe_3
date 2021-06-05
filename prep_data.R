@@ -39,6 +39,25 @@
       else if(checkWind > as.numeric(38) && checkWind <= as.numeric(49)){wetter$Windgeschwindigkeit[i] <- "starker_Wind"}
     } 
     ##################Windgeschwindigkeit Kategorisieren
+    
+    
+    ##################Temperatur Kategorisieren
+    #Kategorisierung nach Wikiirgendwas
+    wetter$Temperatur <- round(wetter$Temperatur) #3 als Standardwert für nicht vorhandene Daten
+    
+    for (i in as.numeric(row.names(wetter))){
+      checkTemp <- as.numeric(wetter$Temperatur[i])
+      
+      if(checkTemp <= as.numeric(0)){wetter$Temperatur[i] <- "Eisig"}
+      else if(checkTemp > as.numeric(0) && checkTemp <= as.numeric(5)){wetter$Temperatur[i] <- "Kalter_Tag"}
+      else if(checkTemp > as.numeric(5) && checkTemp <= as.numeric(12)){wetter$Temperatur[i] <- "Vegetationstag"}
+      else if(checkTemp > as.numeric(12) && checkTemp <= as.numeric(20)){wetter$Temperatur[i] <- "Fruehling"}
+      else if(checkTemp > as.numeric(20) && checkTemp <= as.numeric(30)){wetter$Temperatur[i] <- "Sommertag"}
+      else if(checkTemp > as.numeric(30)){wetter$Temperatur[i] <- "Heisser_Tag"}
+    } 
+    ##################Temperatur Kategorisieren
+    
+
 
     
     #Bearbeiten von wetter_dwd
@@ -67,6 +86,28 @@
     wetter_dwd$Sonnenscheindauer <- as.numeric(wetter_dwd$Sonnenscheindauer)
     wetter_dwd$Relative_Feuchte <- as.numeric(wetter_dwd$Relative_Feuchte)
     wetter_dwd$Niederschlagsmenge <- as.numeric(wetter_dwd$Niederschlagsmenge)
+    
+    
+    
+    ##################Niederschlagsmenge Kategorisieren
+    #Kategorisierung nach eigenem ermessen
+    wetter_dwd$Niederschlagsmenge[is.na(wetter_dwd$Niederschlagsmenge)] <- as.numeric(0) #0 als Standardwert für nicht vorhandene Daten
+    
+    for (i in as.numeric(row.names(wetter_dwd))){
+      checkregen <- as.numeric(wetter_dwd$Niederschlagsmenge[i])
+      
+      if(checkregen <= as.numeric(8)){wetter_dwd$Niederschlagsmenge[i] <- 1}
+      else if(checkregen > as.numeric(8) && checkregen <= as.numeric(16)){wetter_dwd$Niederschlagsmenge[i] <- 2}
+      else if(checkregen > as.numeric(16) && checkregen <= as.numeric(24)){wetter_dwd$Niederschlagsmenge[i] <- 3}
+      else if(checkregen > as.numeric(24) && checkregen <= as.numeric(32)){wetter_dwd$Niederschlagsmenge[i] <- 4}
+      else if(checkregen > as.numeric(32) && checkregen <= as.numeric(40)){wetter_dwd$Niederschlagsmenge[i] <- 5}
+    } 
+    ##################Niederschlagsmenge Kategorisieren
+    
+    
+    
+    
+    
     
     ####################################
     ####Ausreißer löschen (Silvester und Heiligabend)
@@ -239,7 +280,7 @@
     ###Vorbereiten des Dataframe für die Vorhersage
     
     #Dummy Encoden der Variablen für die Vorhersage
-    dummy_list <- c("Monat", "Wochentag", "Warengruppe" , "Bewoelkung", "Windgeschwindigkeit")
+    dummy_list <- c("Monat", "Wochentag", "Warengruppe" , "Bewoelkung", "Windgeschwindigkeit", "Temperatur", "Niederschlagsmenge")
     fullData_dummy = dummy_cols(fullData, dummy_list)
     
     
