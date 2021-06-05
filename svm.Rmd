@@ -1,6 +1,6 @@
 ---
-title: "svm"
-output: html_svm
+title: "SVM Prediction"
+output: html_notebook
 ---
 
 ```{r}
@@ -10,15 +10,6 @@ source("prep_environment.R")
 source("prep_data.R")
 
 ```
-
-```{r}
-# alle NAs durch 0 ersetzen, damit die svm läuft
-# ist nicht die feine Art, wir müssen uns nochmal genauer um die NAs kümmern.
-
-#fullData_dummy[is.na(fullData_dummy)] <- 0
-#newData[is.na(newData)] <- 0
-```
-
 
 
 ## Splitting Training and Test Data
@@ -68,6 +59,7 @@ svm_tune <- tune(svm, Umsatz ~ Warengruppe_Brot +Warengruppe_Broetchen +Warengru
                    Bewoelkung_1 +  Bewoelkung_2 +  Bewoelkung_3 +  Bewoelkung_4 +  Bewoelkung_5 +  Bewoelkung_6 +  Bewoelkung_7 + 
                    Ferien + Feiertag + Wochenende + Umsatz_naiv + Umsatz_mean, data=train_dataset,
                  ranges = list(epsilon = seq(0.1,1,0.1), cost = seq(1,5,0.5))) #2^(-2:3)
+svm_tune$best.model
 
 #Auskommentieren, wenn Modell gespeichert werden soll.
 #saveRDS(svm_tune, "svm_tune1.rds")
@@ -86,6 +78,18 @@ pred_train <- predict(model_svm, train_dataset)
 # Calculating the prediction quality for the training data using the MAPE
 mape(train_dataset$Umsatz, pred_train)
 ```
+Grafische Darstellung der Ergebnisse
+```{r}
+# Bargraph der mittleren Umsatzdaten nach Wochentag pro Warengruppe
+train_dataset$pred <- pred_train
+
+ggplot(train_dataset)+
+  geom_line( aes(x =Datum, y = Umsatz, colour="skyblue"), stat="summary", fun="mean")+
+  geom_line( aes(x =Datum, y = pred, colour="orange"), stat="summary", fun="mean")+
+  xlab("Datum") + ylab("Umsatz") +
+  facet_wrap(~Warengruppe , scales="free")+
+  scale_color_discrete(name = "Umsatz", labels = c("vorhergesagt", "tatsächlich"))
+```
 
 SVM with hyperparameters tuned via grid search and cross validation
 ```{r}
@@ -93,6 +97,18 @@ SVM with hyperparameters tuned via grid search and cross validation
 pred_train <- predict(svm_tune$best.model, train_dataset)
 # Calculating the prediction quality for the training data using the MAPE
 mape(train_dataset$Umsatz, pred_train)
+```
+Grafische Darstellung der Ergebnisse
+```{r}
+# Bargraph der mittleren Umsatzdaten nach Wochentag pro Warengruppe
+train_dataset$pred <- pred_train
+
+ggplot(train_dataset)+
+  geom_line( aes(x =Datum, y = Umsatz, colour="skyblue"), stat="summary", fun="mean")+
+  geom_line( aes(x =Datum, y = pred, colour="orange"), stat="summary", fun="mean")+
+  xlab("Datum") + ylab("Umsatz") +
+  facet_wrap(~Warengruppe , scales="free")+
+  scale_color_discrete(name = "Umsatz", labels = c("vorhergesagt", "tatsächlich"))
 ```
 
 ### Test Data
@@ -104,6 +120,18 @@ pred_test <- predict(model_svm, test_dataset)
 # Calculating the prediction quality for the validation data using the MAPE
 mape(test_dataset$Umsatz, pred_test)
 ```
+Grafische Darstellung der Ergebnisse
+```{r}
+# Bargraph der mittleren Umsatzdaten nach Wochentag pro Warengruppe
+test_dataset$pred <- pred_test
+
+ggplot(test_dataset)+
+  geom_line( aes(x =Datum, y = Umsatz, colour="skyblue"), stat="summary", fun="mean")+
+  geom_line( aes(x =Datum, y = pred, colour="orange"), stat="summary", fun="mean")+
+  xlab("Datum") + ylab("Umsatz") +
+  facet_wrap(~Warengruppe , scales="free")+
+  scale_color_discrete(name = "Umsatz", labels = c("vorhergesagt", "tatsächlich"))
+```
 
 SVM with hyperparameters tuned via grid search and cross validation
 ```{r}
@@ -111,6 +139,18 @@ SVM with hyperparameters tuned via grid search and cross validation
 pred_test <- predict(svm_tune$best.model, test_dataset)
 # Calculating the prediction quality for the test data using the MAPE
 mape(test_dataset$Umsatz, pred_test)
+```
+Grafische Darstellung der Ergebnisse
+```{r}
+# Bargraph der mittleren Umsatzdaten nach Wochentag pro Warengruppe
+test_dataset$pred <- pred_test
+
+ggplot(test_dataset)+
+  geom_line( aes(x =Datum, y = Umsatz, colour="skyblue"), stat="summary", fun="mean")+
+  geom_line( aes(x =Datum, y = pred, colour="orange"), stat="summary", fun="mean")+
+  xlab("Datum") + ylab("Umsatz") +
+  facet_wrap(~Warengruppe , scales="free")+
+  scale_color_discrete(name = "Umsatz", labels = c("vorhergesagt", "tatsächlich"))
 ```
 
 ### New Data
