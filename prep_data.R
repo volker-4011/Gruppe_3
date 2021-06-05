@@ -53,6 +53,7 @@
     ####################################
     ####Ausreißer löschen (Silvester und Heiligabend)
     #Für Silvester und Heiligabend in Spalte "helper" 1 eintragen
+    umsatzdaten$helper <- 0
     for(i in 1:nrow(umsatzdaten)){
       if((format(umsatzdaten$Datum[i], "%d/%m") == "24/12") | (format(umsatzdaten$Datum[i], "%d/%m") == "31/12")){
         umsatzdaten$helper[i] <- 1
@@ -66,9 +67,9 @@
 
     
     ###Vorbereitung für die Vorhersage: Zeilen für alle 6 Warengruppen hinzufügen für den ersten Tag, für den keine Umsatzdaten vorhanden sind
-    d <- max(umsatzdaten$Datum)+1
+    newDay <- max(umsatzdaten$Datum)+1
     for(i in 1:6){
-      umsatzdaten <- add_row(umsatzdaten, Datum = d, Warengruppe = i)
+      umsatzdaten <- add_row(umsatzdaten, Datum = newDay, Warengruppe = i)
     }
     
     
@@ -201,7 +202,7 @@
     for(i in 1:nrow(fullData)){
       d_naiv <- fullData$Datum[i]-7
       w6 <- any(fullData$Datum == d_naiv & fullData$Warengruppe == fullData$Warengruppe[i])
-      if (w6 == TRUE) {
+      if(w6 == TRUE) {
         fullData$Umsatz_naiv[i] <- fullData$Umsatz[fullData$Datum == d_naiv & fullData$Warengruppe == fullData$Warengruppe[i]]
       } else {
         fullData$Umsatz_naiv[i] <- fullData$Umsatz[i] 
@@ -210,9 +211,13 @@
     
    
     ###Mittlerer umsatz pro Monat und Warengruppe
+   
     mean_umsatz <- aggregate(fullData[1:(nrow(fullData)-6), 3], list(fullData$Jahr[1:(nrow(fullData)-6)], fullData$Monat[1:(nrow(fullData)-6)], fullData$Warengruppe[1:(nrow(fullData)-6)]), mean)
     
-    for(i in 1:nrow(fullData)){
+    fullData$Umsatz_mean <- 0
+    
+    #müsste eigenjtlich ohne warnings durchlaufen...
+    for(i in 1:nrow(fullData)-6){
       fullData$Umsatz_mean[i] <- mean_umsatz$x[mean_umsatz$Group.1 == fullData$Jahr[i] & mean_umsatz$Group.2 == fullData$Monat[i] & mean_umsatz$Group.3 == fullData$Warengruppe[i]]
     }
     
@@ -229,10 +234,10 @@
     
     #Dataframe für nächsten Tag erstellen (für die Vorhersage)  
     
-    newData <- rbind(fullData_dummy[fullData_dummy$Datum == d, ])
+    newData <- rbind(fullData_dummy[fullData_dummy$Datum == newDay, ])
     
     #Löschen der Daten für den Tag, der vorhergesagt werden soll aus den Trainingsdaten
-    fullData_dummy <- subset(fullData_dummy, Datum != d)
+    fullData_dummy <- subset(fullData_dummy, Datum != newDay)
     
     # alle NAs durch 0 ersetzen, damit die svm läuft
     # ist nicht die feine Art, wir müssen uns nochmal genauer um die NAs kümmern.
@@ -240,7 +245,8 @@
     newData[is.na(newData)] <- 0
     
   
-########################Für Python/Tenser    
+########################Für Python/Tenser 
+    unlink("fullData.csv")
     writecsvData <- fullData
     writecsvData <- cbind(ID = 1:nrow(writecsvData), writecsvData)
 
