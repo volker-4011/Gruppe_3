@@ -218,13 +218,8 @@
     fullData$Feiertag <- as.numeric(fullData$Feiertag)
     
     ###Einfügen der Variable Umsatz_naiv
-    #Umsatz_naiv der ersten Woche = Umsatz der ersten Woche
-    for(i in 1:42){
-      fullData$Umsatz_naiv[i] <- fullData$Umsatz[i]
-    }
     
-    #Umsatz für alle weiteren Tage = Umsatz von vor 1 Woche für die jeweilige Warengruppe, wenn Umsatz von vor einer Woche nicht vorhande --> Nutze Umsatz des jeweiligen Tages
-    ###Fehlende Einträge für Warengruppe 4 (Konditorei) mit Umsatz = Umsatz von vor 7 Tagen ausfüllen, da kein Grund bzw. zusammenhang für die fehlenden Umsätze erkannt wurde
+    #Überprüfe, ob Umsatz von vor 7 Tagen für die jeweilige Warengruppe vorhanden, wenn ja --> Umsatz vor 7 Tagen = Umsatzu_naiv, wenn nein --> aktueller Umsatz = Umsatz_naiv
     for(i in 1:nrow(fullData)){
       d_naiv <- fullData$Datum[i]-7
       w6 <- any(fullData$Datum == d_naiv & fullData$Warengruppe == fullData$Warengruppe[i])
