@@ -64,8 +64,7 @@ fullData_dummy[ , c('Wettercode',
                 'Sonnenscheindauer',
                 'Temperatur',
                 'Wochentag', 
-                'Windgeschwindigkeit',
-                'Warengruppe' 
+                'Windgeschwindigkeit'
 )] <- list(NULL)
 
 ###################################################

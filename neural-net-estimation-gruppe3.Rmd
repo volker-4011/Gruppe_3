@@ -167,12 +167,69 @@ training_features2
 ```{r}
 
 # Schätzung der (normierten) Preise für die Trainings- und Testdaten
-validation_predictions <- py$model$predict(validation_features2)
-validation_predictions
+Umsatz_predicted <- py$model$predict(validation_features2)
+
+prediction <- data.frame(Umsatz_predicted)
+prediction$Warengruppe <- newData$Warengruppe
+prediction$Datum <- newData$Datum
+prediction$Monat <- newData$Monat
+
+
+
+
+unlink("nne_prediction_1.csv")
+    writecsvData <- prediction
+    writecsvData <- cbind(ID = 1:nrow(writecsvData), writecsvData)
+
+    write.csv(writecsvData,"nne_prediction_1.csv", append = FALSE, quote = TRUE, sep = ",",
+              eol = "\n", na = "NA", dec = ".", row.names = FALSE,
+              col.names = TRUE, qmethod = c("escape", "double"),
+              fileEncoding = "")
+
+prediction
 
 
 ```
+```{r}
 
+ggplot(prediction) +
+  geom_bar( aes(x=Warengruppe, y=Umsatz_predicted), stat="identity", fill="forestgreen", alpha=0.5)
+```
+
+
+
+
+```{r}
+##Da das Saisonbrot nur im Oktober, November oder Dezember verkauft wird, überprüfen, ob sich Vorhersagedatum in dem Zeitraum befindet, ansonsten Umsatz_predicted = 0 setzen
+for (i in 1:nrow(prediction)){
+  if ((!(prediction$Monat[i]==10 | prediction$Monat[i]==11 | prediction$Monat[i]==12)) & prediction$Warengruppe[i]=="Saisonbrot") {
+    prediction$Umsatz_predicted[i] <- 0
+  }
+}
+    
+unlink("nne_prediction_2.csv")
+    writecsvData <- prediction
+    writecsvData <- cbind(ID = 1:nrow(writecsvData), writecsvData)
+
+    write.csv(writecsvData,"nne_prediction_2.csv", append = FALSE, quote = TRUE, sep = ",",
+              eol = "\n", na = "NA", dec = ".", row.names = FALSE,
+              col.names = TRUE, qmethod = c("escape", "double"),
+              fileEncoding = "")    
+
+prediction
+```
+
+
+```{r}
+
+ggplot(prediction) +
+  geom_bar( aes(x=Warengruppe, y=Umsatz_predicted), stat="identity", fill="forestgreen", alpha=0.5)
+```
+
+```{r}
+nne_prediction <- read_csv("nne_prediction_2.csv")
+svm_prediction <- read_csv("svm_prediction_2.csv")
+```
 
 
 ```{r}
