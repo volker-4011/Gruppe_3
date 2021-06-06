@@ -229,7 +229,28 @@ ggplot(prediction) +
 ```{r}
 nne_prediction <- read_csv("nne_prediction_2.csv")
 svm_prediction <- read_csv("svm_prediction_2.csv")
+
+plot_prediction <- svm_prediction
+plot_prediction = rename(plot_prediction, Umsatz_SVM = Umsatz_predicted)
+
+plot_prediction$Umsatz_NNE <- nne_prediction$Umsatz_predicted
 ```
+
+```{r}
+ggplot(svm_prediction) +
+  geom_bar( aes(x=Warengruppe, y=Umsatz_predicted), stat="identity", fill="forestgreen", alpha=0.5)
+
+ggplot(nne_prediction) +
+  geom_bar( aes(x=Warengruppe, y=Umsatz_predicted), stat="identity", fill="forestgreen", alpha=0.5)
+```
+
+```{r}
+ggplot(plot_prediction) +
+  geom_bar( aes(x=Warengruppe, y=Umsatz_SVM), stat="identity", fill="blue", alpha=0.5) +
+  geom_bar( aes(x=Warengruppe, y=Umsatz_NNE), stat="identity", fill="green", alpha=0.5)
+```
+
+
 
 
 ```{r}
