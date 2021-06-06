@@ -175,12 +175,49 @@ prediction$Warengruppe <- newData$Warengruppe
 prediction$Datum <- newData$Datum
 prediction$Monat <- newData$Monat
 
+unlink("svm_prediction_1.csv")
+    writecsvData <- prediction
+    writecsvData <- cbind(ID = 1:nrow(writecsvData), writecsvData)
+
+    write.csv(writecsvData,"svm_prediction_1.csv", append = FALSE, quote = TRUE, sep = ",",
+              eol = "\n", na = "NA", dec = ".", row.names = FALSE,
+              col.names = TRUE, qmethod = c("escape", "double"),
+              fileEncoding = "")
+
+prediction
+```
+```{r}
+
+ggplot(prediction) +
+  geom_bar( aes(x=Warengruppe, y=Umsatz_predicted), stat="identity", fill="forestgreen", alpha=0.5)
+```
+
+
+
+```{r}
 ##Da das Saisonbrot nur im Oktober, November oder Dezember verkauft wird, überprüfen, ob sich Vorhersagedatum in dem Zeitraum befindet, ansonsten Umsatz_predicted = 0 setzen
 for (i in 1:nrow(prediction)){
   if ((!(prediction$Monat[i]==10 | prediction$Monat[i]==11 | prediction$Monat[i]==12)) & prediction$Warengruppe[i]=="Saisonbrot") {
     prediction$Umsatz_predicted[i] <- 0
   }
 }
+    
+unlink("svm_prediction_2.csv")
+    writecsvData <- prediction
+    writecsvData <- cbind(ID = 1:nrow(writecsvData), writecsvData)
+
+    write.csv(writecsvData,"svm_prediction_2.csv", append = FALSE, quote = TRUE, sep = ",",
+              eol = "\n", na = "NA", dec = ".", row.names = FALSE,
+              col.names = TRUE, qmethod = c("escape", "double"),
+              fileEncoding = "")    
 
 prediction
 ```
+
+
+```{r}
+
+ggplot(prediction) +
+  geom_bar( aes(x=Warengruppe, y=Umsatz_predicted), stat="identity", fill="forestgreen", alpha=0.5)
+```
+
