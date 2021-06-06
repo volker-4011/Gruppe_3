@@ -118,8 +118,10 @@ colnames(fullData_dummy)
 
 # Selection of the features (the independent variables used to predict the dependent)
 #features <- c('sqft_lot', 'waterfront', 'grade', 'bathrooms', view_dummies, condition_dummies)
+#features <- c('Ferien', 'Feiertag','Wochenende', 'KielerWoche',bewoelkung_dummies,monat_dummies, 
+#              wochentag_dummies, warengruppe_dummies,windgeschwindigkeit_dummies,temperatur_dummies,niederschlag_dummies)
 features <- c('Ferien', 'Feiertag','Wochenende', 'KielerWoche',bewoelkung_dummies,monat_dummies, 
-              wochentag_dummies, warengruppe_dummies,windgeschwindigkeit_dummies,temperatur_dummies,niederschlag_dummies)
+              wochentag_dummies, warengruppe_dummies)
 # Selection of the label (the dependent variable)
 labels <- 'Umsatz'
 
