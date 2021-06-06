@@ -236,12 +236,49 @@ plot_prediction = rename(plot_prediction, Umsatz_SVM = Umsatz_predicted)
 plot_prediction$Umsatz_NNE <- nne_prediction$Umsatz_predicted
 ```
 
-```{r}
-ggplot(svm_prediction) +
-  geom_bar( aes(x=Warengruppe, y=Umsatz_predicted), stat="identity", fill="forestgreen", alpha=0.5)
 
-ggplot(nne_prediction) +
-  geom_bar( aes(x=Warengruppe, y=Umsatz_predicted), stat="identity", fill="forestgreen", alpha=0.5)
+```{r}
+plot_prediction$Umsatz_NNE
+
+str(plot_prediction)
+
+df1 <- data.frame(Warengruppe=rep(svm_prediction$Warengruppe),
+                 Methode=rep('Umsatz_SVM'),
+                 Umsatz=svm_prediction$Umsatz_predicted)
+
+df2 <- data.frame(Warengruppe=rep(nne_prediction$Warengruppe),
+                 Methode=rep('Umsatz_NNE'),
+                 Umsatz=nne_prediction$Umsatz_predicted)
+
+dft <- rbind(df1,df2)
+
+
+dft <- dft[order(dft$Warengruppe),]
+
+ggplot(dft, aes(fill=Warengruppe, y=Umsatz, x=Methode)) +
+  geom_bar(position='dodge', stat='identity')
+
+
+ggplot(dft, aes(fill=Methode, y=Umsatz, x=Warengruppe)) +
+  geom_bar(position='dodge', stat='identity') +
+  ggtitle('Vorhergesagte Umsätze für den ') +
+  xlab('Warengruppen') +
+  ylab('Umsatz') +
+  scale_fill_manual('Methode', values=c('coral2','steelblue'))
+```
+
+
+
+
+
+
+
+```{r}
+#ggplot(svm_prediction) +
+#  geom_bar( aes(x=Warengruppe, y=Umsatz_predicted), stat="identity", fill="forestgreen", alpha=0.5)
+
+#ggplot(nne_prediction) +
+#  geom_bar( aes(x=Warengruppe, y=Umsatz_predicted), stat="identity", fill="forestgreen", alpha=0.5)
 ```
 
 ```{r}
