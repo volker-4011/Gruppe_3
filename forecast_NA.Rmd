@@ -1,0 +1,462 @@
+---
+title: "forecast_NA"
+author: "Peyman Farshidfar"
+date: "7 6 2021"
+output: html_document
+---
+
+```{r}
+  #Import aller benötigten Labraries
+  source("prep_environment.R")
+  ##################################
+
+  #Import aller zur Verfügung stehenden Daten########################################################################################
+  #Längere Verbindung, für das Laden / vermeidet Fehler
+  options(timeout= 4000000) 
+  #####################################################
+  #Verweise der Daten
+    umsatzdaten_source = "https://raw.githubusercontent.com/opencampus-sh/einfuehrung-in-data-science-und-ml/main/umsatzdaten_gekuerzt.csv"
+    wetter_source = "https://raw.githubusercontent.com/opencampus-sh/einfuehrung-in-data-science-und-ml/main/wetter.csv"
+    kiwo_source = "https://raw.githubusercontent.com/opencampus-sh/einfuehrung-in-data-science-und-ml/main/kiwo.csv"
+    wetter_dwd_source = "https://raw.githubusercontent.com/volker-4011/Gruppe_3/main/wetter_dwd.csv" #Nur Local
+    
+    #Laden der Dateien##################
+    umsatzdaten <- read_csv(umsatzdaten_source)
+    wetter <- read_csv(wetter_source)
+    kiwo <- read_csv(kiwo_source)
+    wetter_dwd <- read_delim(wetter_dwd_source, delim = ";")
+
+    source("https://raw.githubusercontent.com/volker-4011/Gruppe_3/main/ferientage.R", encoding = "UTF-8")
+    source("https://raw.githubusercontent.com/volker-4011/Gruppe_3/main/feiertage.R", encoding = "UTF-8")
+    
+    #####################################################
+```
+
+
+
+```{r}
+    #Bearbeiten von wetter_dwd
+    wetter_dwd$MESS_DATUM <- as.Date(wetter_dwd$MESS_DATUM, "%d.%m.%Y")
+    wetter_dwd <- dplyr::rename(wetter_dwd, Datum = MESS_DATUM)
+    wetter_dwd[wetter_dwd==-999.000] <- NA
+    # Hinzufügen Dataframe wetter_dwd. Vorher entfernen der nicht benötigten Spalten
+    wetter_dwd[ , c('Windspitze',
+                    'Windgeschwindigkeit',
+                    'STATIONS_ID',
+                    'QN_3',
+                    'QN_4',
+                    'Niederschlagsform',
+                    'Schneehoehe',
+                    'Bedeckungsgrad',
+                    'Dampfdruck',
+                    'Luftdruck',
+                    'Temperatur',
+                    'Max-Temperatur',
+                    'Min_Temperatur',
+                    'Min_Temperatur_Boden',
+                    'eor'
+    )] <- list(NULL)
+    
+        #Konvertieren der hinzugefügten Spalten aus wetter_dwd von "Character" zu "numeric"
+    wetter_dwd$Sonnenscheindauer <- as.numeric(wetter_dwd$Sonnenscheindauer)
+    wetter_dwd$Relative_Feuchte <- as.numeric(wetter_dwd$Relative_Feuchte)
+    wetter_dwd$Niederschlagsmenge <- as.numeric(wetter_dwd$Niederschlagsmenge)
+```
+
+
+
+```{r}
+    ####Ausreißer löschen (Silvester und Heiligabend)
+    #Für Silvester und Heiligabend in Spalte "helper" 1 eintragen
+    umsatzdaten$helper <- 0
+    for(i in 1:nrow(umsatzdaten)){
+      if((format(umsatzdaten$Datum[i], "%d/%m") == "24/12") | (format(umsatzdaten$Datum[i], "%d/%m") == "31/12")){
+        umsatzdaten$helper[i] <- 1
+      } else{
+        umsatzdaten$helper[i] <- 0
+      }
+    }
+    #Silvester und Heiligabend löschen, anschließend Spalte "helper" löschen
+    umsatzdaten <- umsatzdaten[umsatzdaten$helper==0, ]
+    umsatzdaten$helper <- NULL
+
+    
+    ###Vorbereitung für die Vorhersage: Zeilen für alle 6 Warengruppen hinzufügen für den ersten Tag, für den keine Umsatzdaten vorhanden sind
+    #newDay <- max(umsatzdaten$Datum)+1
+    #for(i in 1:6){
+    #  umsatzdaten <- add_row(umsatzdaten, Datum = newDay, Warengruppe = i)
+    #}
+```
+
+
+
+```{r}
+    ###Zusammensetzen der Daten
+    fullData <- merge(umsatzdaten,wetter, by="Datum", all.x = TRUE)
+    fullData <- merge(fullData,kiwo, by="Datum", all.x = TRUE)
+    fullData <- merge(fullData,wetter_dwd, by="Datum", all.x = TRUE)
+    fullData <- merge(fullData,ferientage, by="Datum", all.x = TRUE)
+    fullData <- merge(fullData,feiertage, by="Datum", all.x = TRUE)
+```
+
+
+```{r}
+     Warengruppen <- c("Brot", "Broetchen", "Crossaint", "Konditorei", "Kuchen", "Saisonbrot")
+     for (e in as.numeric(row.names(fullData)))
+       fullData$Warengruppe[e] <- Warengruppen[as.numeric(fullData$Warengruppe[e])]
+    
+    #Extrahieren des Wochentags aus dem Datum und speichern in neuer Variablen
+    fullData$Wochentag <- weekdays(fullData$Datum)
+    
+    #Extrahieren des Monats aus dem Datum und speichern in neuer Variablen
+    fullData$Monat <- month(fullData$Datum)
+    
+    fullData$Jahr <- format(fullData$Datum, "%Y")
+    
+    #Hinzufügen neue Variable Wochenende
+    fullData$Wochenende <- with(fullData, ifelse(Wochentag=="Sonntag" | Wochentag=="Samstag", 1, 0))
+    
+    #Dezimalstellen wenig sinvoll, besser Runden
+    fullData$Umsatz <- round(fullData$Umsatz)
+    
+    #Alle NA durch 0 ersetzen in Boolschen Variablen
+    fullData$KielerWoche[is.na(fullData$KielerWoche)] <- 0 # Alle NA in KielerWoche durch 0 ersetzen
+    fullData$Ferien[is.na(fullData$Ferien)] <- 0 #Entweder Ferien oder "nicht = 0"
+    fullData$Feiertag[is.na(fullData$Feiertag)] <- 0 #Entweder Feiertag oder "nicht = 0"
+    
+    #Variablen vom chr in num wandeln
+    fullData$Ferien <- as.numeric(fullData$Ferien)
+    fullData$Feiertag <- as.numeric(fullData$Feiertag)
+    
+    ###Einfügen der Variable Umsatz_naiv
+    
+    #Überprüfe, ob Umsatz von vor 7 Tagen für die jeweilige Warengruppe vorhanden, wenn ja --> Umsatz vor 7 Tagen = Umsatzu_naiv, wenn nein --> aktueller Umsatz = Umsatz_naiv
+    for(i in 1:nrow(fullData)){
+      d_naiv <- fullData$Datum[i]-7
+      w6 <- any(fullData$Datum == d_naiv & fullData$Warengruppe == fullData$Warengruppe[i])
+      if(w6 == TRUE) {
+        fullData$Umsatz_naiv[i] <- fullData$Umsatz[fullData$Datum == d_naiv & fullData$Warengruppe == fullData$Warengruppe[i]]
+      } else {
+        fullData$Umsatz_naiv[i] <- fullData$Umsatz[i] 
+      }
+    }
+    
+   
+    ###Mittlerer umsatz pro Monat und Warengruppe
+   
+    mean_umsatz <- aggregate(fullData[1:(nrow(fullData)-6), 3], list(fullData$Jahr[1:(nrow(fullData)-6)], fullData$Monat[1:(nrow(fullData)-6)], fullData$Warengruppe[1:(nrow(fullData)-6)]), mean)
+    
+    fullData$Umsatz_mean <- 0
+    
+    #müsste eigenjtlich ohne warnings durchlaufen...
+    for(i in 1:nrow(fullData)-6){
+      fullData$Umsatz_mean[i] <- mean_umsatz$x[mean_umsatz$Group.1 == fullData$Jahr[i] & mean_umsatz$Group.2 == fullData$Monat[i] & mean_umsatz$Group.3 == fullData$Warengruppe[i]]
+    }
+    
+    #########################
+```
+
+
+
+
+
+```{r}
+#Alle Spalten mit NA
+colnames(fullData)[colSums(is.na(fullData)) > 0]
+```
+```{r}
+#Alle Spalten ohne NA
+colnames(fullData)[colSums(!is.na(fullData)) > 0]
+```
+
+
+
+```{r}
+    fullData[is.na(fullData)] <- 9999
+```
+
+
+
+
+```{r}
+    #Dummy Encoden der Variablen für die Vorhersage
+    dummy_list <- c("Monat", "Wochentag", "Warengruppe")
+    fullData_dummy = dummy_cols(fullData, dummy_list)
+```
+
+
+
+
+```{r}
+# Definition of lists for each one-hot encoded variable (just to make the handling easier)
+monat_dummies = c("Monat_1","Monat_2","Monat_3","Monat_4","Monat_5","Monat_6","Monat_7",
+                 "Monat_8","Monat_9","Monat_10","Monat_11","Monat_12")
+wochentag_dummies = c("Wochentag_Dienstag","Wochentag_Donnerstag","Wochentag_Freitag",
+                      "Wochentag_Mittwoch","Wochentag_Montag","Wochentag_Samstag","Wochentag_Sonntag")
+warengruppe_dummies = c("Warengruppe_Broetchen","Warengruppe_Brot","Warengruppe_Crossaint","Warengruppe_Konditorei"
+                        ,"Warengruppe_Kuchen","Warengruppe_Saisonbrot")
+bewoelkung_dummies = c("Bewoelkung_0","Bewoelkung_1","Bewoelkung_2","Bewoelkung_3","Bewoelkung_4","Bewoelkung_5"
+                       ,"Bewoelkung_6","Bewoelkung_7","Bewoelkung_8","Bewoelkung_NA")
+
+windgeschwindigkeit_dummies = c("Windgeschwindigkeit_frische_Briese","Windgeschwindigkeit_leichte_Briese","Windgeschwindigkeit_maessige_Briese", 
+                                "Windgeschwindigkeit_schwache_Briese", "Windgeschwindigkeit_Windstille", "Windgeschwindigkeit_NA")
+
+temperatur_dummies = c("Temperatur_Eisig","Temperatur_Fruehling","Temperatur_Heisser_Tag","Temperatur_Kalter_Tag","Temperatur_Sommertag",
+                       "Temperatur_Vegetationstag","Temperatur_NA")
+
+niederschlag_dummies = c("Niederschlagsmenge_1","Niederschlagsmenge_2","Niederschlagsmenge_3","Niederschlagsmenge_4","Niederschlagsmenge_5")
+
+
+#Spalten in numerische Zahlen umwandeln
+for(i in 1:ncol(fullData_dummy)) {       # for-loop over columns
+  columnType <- typeof(fullData_dummy[ , i])
+  #print(columnType)
+  if(columnType == "integer" || columnType == "num"){
+    fullData_dummy[ , i] <- as.double(fullData_dummy[ , i])
+  }
+}
+
+
+
+# Look at the data
+str(fullData_dummy)
+
+#colnames(fullData_dummy)
+
+
+
+
+
+###################################################
+### Selection of the Feature Variables and the Label Variable ####
+
+# Selection of the features (the independent variables used to predict the dependent)
+#features <- c('sqft_lot', 'waterfront', 'grade', 'bathrooms', view_dummies, condition_dummies)
+#features <- c('Ferien', 'Feiertag','Wochenende', 'KielerWoche',bewoelkung_dummies,monat_dummies, 
+#              wochentag_dummies, warengruppe_dummies,windgeschwindigkeit_dummies,temperatur_dummies,niederschlag_dummies)
+features <- c('Umsatz','Ferien', 'Feiertag','Wochenende', 'KielerWoche',monat_dummies, 
+              wochentag_dummies, warengruppe_dummies)
+# Selection of the label (the dependent variable)
+labels <- 'Bewoelkung'
+
+
+###################################################
+### Selection of Training, Validation and Test Data ####
+
+# Look at the data
+#str(fullData_dummy)
+
+# Setting the random counter to a fixed value, so the random initialization stays the same (the random split is always the same)
+set.seed(1)
+
+# Shuffling the dataset (to get random orders within each dataset as well)
+new_row_order <- sample(nrow(fullData_dummy))
+fullData_dummy <- fullData_dummy[new_row_order, ]
+
+
+# alle NAs durch 0 ersetzen, damit die svm läuft
+# ist nicht die feine Art, wir müssen uns nochmal genauer um die NAs kümmern.
+#fullData_dummy[is.na(fullData_dummy)] <- 0
+
+forecastData <- fullData_dummy[fullData_dummy$Bewoelkung == 9999, ]
+
+fullData_dummy <- fullData_dummy[fullData_dummy$Bewoelkung != 9999, ]
+#Löschen der Daten für den Tag, der vorhergesagt werden soll aus den Trainingsdaten
+#fullData_dummy <- subset(fullData_dummy, Datum != 9999)
+
+
+
+
+
+
+
+# Assign each row number in the full dataset randomly to one of the three groups of datasets
+# The probability of being in one of the groups results then in crresponding group sizes
+assignment <- sample(1:3, size = nrow(fullData_dummy), prob = c(.7, .2, .1), replace = TRUE)
+#assignmentV <- sample(1:3, size = nrow(newData), prob = c(.7, .2, .1), replace = TRUE)
+
+# Create training, validation and test data for the features and the labels
+training_features <- as_tibble(fullData_dummy[assignment == 1, features])    # subset house_pricing to training indices only
+training_labels <- as_tibble(fullData_dummy[assignment == 1, labels])    # subset house_pricing to training indices only
+
+validation_features <- as_tibble(fullData_dummy[assignment == 2, features])  # subset house_pricing to validation indices only
+validation_labels <- as_tibble(fullData_dummy[assignment == 2, labels])  # subset house_pricing to validation indices only
+
+test_features <- as_tibble(fullData_dummy[assignment == 3, features])   # subset house_pricing to test indices only
+test_labels <- as_tibble(fullData_dummy[assignment == 3, labels])   # subset house_pricing to test indices only
+
+
+
+
+```
+
+
+
+
+```{r}
+#install.packages("reticulate")
+library(reticulate)
+# Installation von miniconda (falls nicht vorhanden)
+#install_miniconda(update=TRUE)
+# Anlegen einer speziellen Python Umgebung
+#conda_create("r-reticulate", packages = "python=3.6")
+# Installieren der Pakete in der angelegten Umgebung
+#conda_install("r-reticulate", "pandas")
+#conda_install("r-reticulate", "numpy")
+#conda_install("r-reticulate", "tensorflow")
+#conda_install("r-reticulate", "h5py")
+ 
+# Verwenden der speziellen Python Umgebung die zuvor erstellt wurde
+use_condaenv("r-reticulate")
+```
+
+
+
+
+### Laden benötigter Packages
+```{r, include=FALSE}
+library(reticulate)
+library(ggplot2)
+library(Metrics)
+```
+
+
+### Definition des Neuronalen Netzes
+```{python}
+# Import needed Python libraries and functions
+import numpy as np
+import tensorflow as tf
+from tensorflow.keras.layers import Dense
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.layers.experimental import preprocessing
+
+# Create a Normalization layer and use the means and variances of the training features for the normalization
+normalizer = preprocessing.Normalization()
+normalizer.adapt(r.training_features.values)
+# The argument "shape" for the definition of the input layer must include the number of variables (features) used for the model. To automatically calculate this number, we use the "r.training_features.keys()", which returns the list of variable names of the dataframe "training_features". Further, the function len() returns the length of this list of variable names (i.e. the number of variables in the input).
+inputs = tf.keras.Input(shape=[len(r.training_features.keys())])
+# Normalization layer
+x = normalizer(inputs)
+# 1st hidden layer
+x = Dense(105, activation='relu')(x)
+# 2nd hidden layer
+x = Dense(4, activation='relu')(x)
+# Output layer
+output = tf.keras.layers.Dense(1)(x)
+# Model definition
+model = tf.keras.Model(inputs, output)
+# Ausgabe einer Zusammenfassung zur Form des Modells, das geschaetzt wird (nicht notwendig)
+model.summary()
+```
+
+
+### Schätzung des neuronalen Netzes
+```{python}
+# Definition der Kosten-(Loss-)Funktion und der Optimierungsfunktion mit seinen Hyperparametern
+model.compile(loss="mse", optimizer=Adam(lr=0.001))
+# Schaetzung des Modells
+history = model.fit(r.training_features, r.training_labels, epochs=50,
+                    validation_data = (r.validation_features, r.validation_labels), verbose=0)
+# Ggf. Speichern des geschaetzten Modells
+model.save("python_model.h5")
+```
+
+
+### Auswertung der Modelloptimierung
+```{r}
+# Grafische Ausgabe der Modelloptimierung
+# create data
+data <- data.frame(val_loss = unlist(py$history$history$val_loss),
+                  loss = unlist(py$history$history$loss))
+# Plot
+ggplot(data[-1,]) +
+  geom_line( aes(x=1:length(val_loss), y=val_loss, colour = "Validation Loss" )) +
+  geom_line( aes(x=1:length(loss), y=loss, colour = "Training Loss" )) +
+  scale_colour_manual( values = c("Training Loss"="blue", "Validation Loss"="red") ) +
+  labs(title="Loss Function Values During Optimization") +
+  xlab("Iteration Number") +
+  ylab("Loss") 
+```
+
+
+### (Ggf.) Laden eines gespeicherten Neuronalen Netzes ###
+```{python}
+model = tf.keras.models.load_model("python_model.h5")
+```
+
+
+
+### Auswertung der Schätzergebnisse ###
+```{r}
+
+# Schätzung der (normierten) Preise für die Trainings- und Testdaten
+training_predictions <- py$model$predict(training_features)
+validation_predictions <- py$model$predict(validation_features)
+# Vergleich der Gütekriterien für die Traingings- und Testdaten
+
+
+cat(paste0("MAPE on the Training Data:\t", format(mape(training_labels[[1]], training_predictions)*100, digits=3, nsmall=2)))
+cat(paste0("\nMAPE on the Validation Data:\t", format(mape(validation_labels[[1]], validation_predictions)*100, digits=3, nsmall=2)))
+```
+```{r}
+## Grafischer vergleich der vorhergesagten und der tatsächlichen Preise für die Trainings- und Testdaten
+# Zusammenstellung der Daten für die Plots
+data_train <- data.frame(prediction = training_predictions/1000, actual = training_labels[[1]]/1000)
+data_test <- data.frame(prediction = validation_predictions/1000, actual = validation_labels[[1]]/1000)
+# Plot der Ergebnisse der Trainingsdaten
+ggplot(data_train[1:100,]) +
+  geom_line( aes(x=1:length(prediction), y=prediction, colour = "Predicted Values" )) +
+  geom_line( aes(x=1:length(actual), y=actual, colour = "Actual Values" )) +
+  scale_colour_manual( values = c("Predicted Values"="blue", "Actual Values"="red") ) +
+  labs(title="Predicted and Actual Values for the Training Data") +
+  xlab("Case Number") +
+  ylab("Price in 1.000 USD") 
+# Plot der Ergebnisse der Validierungsdaten
+ggplot(data_test[1:100,]) +
+  geom_line( aes(x=1:length(prediction), y=prediction, colour = "Predicted Values" )) +
+  geom_line( aes(x=1:length(actual), y=actual, colour = "Actual Values" )) +
+  scale_colour_manual( values = c("Predicted Values"="blue", "Actual Values"="red") ) +
+  labs(title="Predicted and Actual Values for the Test Data") +
+  xlab("Case Number") +
+  ylab("Price in 1.000 USD") 
+```
+
+
+
+
+
+```{r}
+#Sortieren nach ID
+#newData <- newData[order(newData$ID),]
+
+colnamesPred <- colnames(validation_features)
+#colnamesPred
+#typeof(colnamesPred)
+validation_features2 <- forecastData[colnamesPred]
+
+validation_features2
+
+```
+
+
+### Auswertung der Schätzergebnisse ###
+```{r}
+
+# Schätzung der (normierten) Preise für die Trainings- und Testdaten
+Umsatz_predicted <- round(py$model$predict(validation_features2))
+
+Umsatz_predicted
+
+
+```
+
+
+
+
+
+```{r}
+
+
+```
+
+
