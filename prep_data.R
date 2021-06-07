@@ -23,115 +23,7 @@
     
     #####################################################
 
-    
-    
-    
-    
-    
-    
-    dayone_utc = 0
-    daytwo_utc = 0
-    daycurrent_utc = 0
-    
-    dayone = 0
-    daytwo = 0
-    daycurrent = 0
-    
-    dayone_value = 0
-    daytwo_value = 0
-    daycurrent_value = 0  
-    
-    for (i in as.numeric(row.names(wetter))){
-     
-      if(is.na(wetter$Wettercode[i])){
 
-        dayone <- max(wetter$Datum[i])-1
-        daytwo <- max(wetter$Datum[i])+1
-
-        dayone_value = max(wetter$Wettercode[i-1])
-        
-        daytwo_value = NA
-        j = 1
-        while (is.na(daytwo_value)) {   
-          daytwo_value = max(wetter$Wettercode[i+j])
-          j = j + 1
-        } 
-
-        dayone_utc = as.numeric(as.POSIXct(max(wetter$Datum[i])-1, format="%Y-%m-%d"))
-        daytwo_utc = as.numeric(as.POSIXct(max(wetter$Datum[i])+1, format="%Y-%m-%d"))
-        daycurrent_utc = as.numeric(as.POSIXct(max(wetter$Datum[i]), format="%Y-%m-%d"))
-
-        daycurrent_value = dayone_value + ((daytwo_value - dayone_value) * ((daycurrent_utc - dayone_utc)/(daytwo_utc - dayone_utc)))
-        
-        
-        wetter$Wettercode[i] <- daycurrent_value
-
-        #print(paste("x1: ",dayone_utc))
-        #print(paste("x2: ",daytwo_utc))
-        #print(paste("xi: ",daycurrent_utc))
-        #print(paste("y1: ",dayone_value))
-        #print(paste("y2: ",daytwo_value))
-        #print(paste("yi: ",daycurrent_value))
-        
-        #print("################################")
-        #print("################################")
-        #print("################################")
-      }
-    }
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    ##################Windgeschwindigkeit Kategorisieren
-    #Kategorisierung nach https://www.wind-turbine-models.com/winds
-    wetter$Windgeschwindigkeit[is.na(wetter$Windgeschwindigkeit)] <- as.numeric(3) #3 als Standardwert für nicht vorhandene Daten
-    
-    for (i in as.numeric(row.names(wetter))){
-      checkWind <- as.numeric(wetter$Windgeschwindigkeit[i])
-      
-      if(checkWind <= as.numeric(5)){wetter$Windgeschwindigkeit[i] <- "Windstille"}
-      else if(checkWind > as.numeric(5) && checkWind <= as.numeric(11)){wetter$Windgeschwindigkeit[i] <- "leichte_Briese"}
-      else if(checkWind > as.numeric(11) && checkWind <= as.numeric(19)){wetter$Windgeschwindigkeit[i] <- "schwache_Briese"}
-      else if(checkWind > as.numeric(19) && checkWind <= as.numeric(28)){wetter$Windgeschwindigkeit[i] <- "maessige_Briese"}
-      else if(checkWind > as.numeric(28) && checkWind <= as.numeric(38)){wetter$Windgeschwindigkeit[i] <- "frische_Briese"}
-      else if(checkWind > as.numeric(38) && checkWind <= as.numeric(49)){wetter$Windgeschwindigkeit[i] <- "starker_Wind"}
-    } 
-    ##################Windgeschwindigkeit Kategorisieren
-    
-    
-    ##################Temperatur Kategorisieren
-    #Kategorisierung nach Wikiirgendwas
-    wetter$Temperatur <- round(wetter$Temperatur) #3 als Standardwert für nicht vorhandene Daten
-    
-    for (i in as.numeric(row.names(wetter))){
-      checkTemp <- as.numeric(wetter$Temperatur[i])
-      
-      if(checkTemp <= as.numeric(0)){wetter$Temperatur[i] <- "Eisig"}
-      else if(checkTemp > as.numeric(0) && checkTemp <= as.numeric(5)){wetter$Temperatur[i] <- "Kalter_Tag"}
-      else if(checkTemp > as.numeric(5) && checkTemp <= as.numeric(12)){wetter$Temperatur[i] <- "Vegetationstag"}
-      else if(checkTemp > as.numeric(12) && checkTemp <= as.numeric(20)){wetter$Temperatur[i] <- "Fruehling"}
-      else if(checkTemp > as.numeric(20) && checkTemp <= as.numeric(30)){wetter$Temperatur[i] <- "Sommertag"}
-      else if(checkTemp > as.numeric(30)){wetter$Temperatur[i] <- "Heisser_Tag"}
-    } 
-    ##################Temperatur Kategorisieren
     
 
 
@@ -165,21 +57,7 @@
     
     
     
-    ##################Niederschlagsmenge Kategorisieren
-    #Kategorisierung nach eigenem ermessen
-    wetter_dwd$Niederschlagsmenge[is.na(wetter_dwd$Niederschlagsmenge)] <- as.numeric(0) #0 als Standardwert für nicht vorhandene Daten
-    
-    for (i in as.numeric(row.names(wetter_dwd))){
-      checkregen <- as.numeric(wetter_dwd$Niederschlagsmenge[i])
-      
-      if(checkregen <= as.numeric(8)){wetter_dwd$Niederschlagsmenge[i] <- 1}
-      else if(checkregen > as.numeric(8) && checkregen <= as.numeric(16)){wetter_dwd$Niederschlagsmenge[i] <- 2}
-      else if(checkregen > as.numeric(16) && checkregen <= as.numeric(24)){wetter_dwd$Niederschlagsmenge[i] <- 3}
-      else if(checkregen > as.numeric(24) && checkregen <= as.numeric(32)){wetter_dwd$Niederschlagsmenge[i] <- 4}
-      else if(checkregen > as.numeric(32) && checkregen <= as.numeric(40)){wetter_dwd$Niederschlagsmenge[i] <- 5}
-    } 
-    ##################Niederschlagsmenge Kategorisieren
-    
+
     
     
     
@@ -282,6 +160,236 @@
     fullData <- merge(fullData,feiertage, by="Datum", all.x = TRUE)
     
     
+    
+    
+    dayone_utc = 0
+    daytwo_utc = 0
+    daycurrent_utc = 0
+    
+    dayone = 0
+    daytwo = 0
+    daycurrent = 0
+    
+    dayone_value = 0
+    daytwo_value = 0
+    daycurrent_value = 0  
+    
+    for (i in as.numeric(row.names(fullData))){
+      
+      if(is.na(fullData$Bewoelkung[i])){
+        
+        dayone <- max(fullData$Datum[i])-1
+        daytwo <- max(fullData$Datum[i])+1
+        
+        dayone_value = max(fullData$Bewoelkung[i-1])
+        
+        daytwo_value = NA
+        j = 1
+        while (is.na(daytwo_value)) {   
+          daytwo_value = max(fullData$Bewoelkung[i+j])
+          j = j + 1
+        } 
+        
+        dayone_utc = as.numeric(as.POSIXct(max(fullData$Datum[i])-1, format="%Y-%m-%d"))
+        daytwo_utc = as.numeric(as.POSIXct(max(fullData$Datum[i])+1, format="%Y-%m-%d"))
+        daycurrent_utc = as.numeric(as.POSIXct(max(fullData$Datum[i]), format="%Y-%m-%d"))
+        
+        daycurrent_value = dayone_value + ((daytwo_value - dayone_value) * ((daycurrent_utc - dayone_utc)/(daytwo_utc - dayone_utc)))
+        
+        
+        fullData$Bewoelkung[i] <- round(daycurrent_value)
+
+      }
+    }
+    
+    
+    
+    
+    
+    
+    dayone_utc = 0
+    daytwo_utc = 0
+    daycurrent_utc = 0
+    
+    dayone = 0
+    daytwo = 0
+    daycurrent = 0
+    
+    dayone_value = 0
+    daytwo_value = 0
+    daycurrent_value = 0  
+    
+    for (i in as.numeric(row.names(fullData))){
+      
+      if(is.na(fullData$Temperatur[i])){
+        
+        dayone <- max(fullData$Datum[i])-1
+        daytwo <- max(fullData$Datum[i])+1
+        
+        dayone_value = max(fullData$Temperatur[i-1])
+        
+        daytwo_value = NA
+        j = 1
+        while (is.na(daytwo_value)) {   
+          daytwo_value = max(fullData$Temperatur[i+j])
+          j = j + 1
+        } 
+        
+        dayone_utc = as.numeric(as.POSIXct(max(fullData$Datum[i])-1, format="%Y-%m-%d"))
+        daytwo_utc = as.numeric(as.POSIXct(max(fullData$Datum[i])+1, format="%Y-%m-%d"))
+        daycurrent_utc = as.numeric(as.POSIXct(max(fullData$Datum[i]), format="%Y-%m-%d"))
+        
+        daycurrent_value = dayone_value + ((daytwo_value - dayone_value) * ((daycurrent_utc - dayone_utc)/(daytwo_utc - dayone_utc)))
+        
+        
+        fullData$Temperatur[i] <- daycurrent_value
+        
+
+      }
+    }
+    
+    
+    
+    dayone_utc = 0
+    daytwo_utc = 0
+    daycurrent_utc = 0
+    
+    dayone = 0
+    daytwo = 0
+    daycurrent = 0
+    
+    dayone_value = 0
+    daytwo_value = 0
+    daycurrent_value = 0  
+    
+    for (i in as.numeric(row.names(fullData))){
+      
+      if(is.na(fullData$Windgeschwindigkeit[i])){
+        
+        dayone <- max(fullData$Datum[i])-1
+        daytwo <- max(fullData$Datum[i])+1
+        
+        dayone_value = max(fullData$Windgeschwindigkeit[i-1])
+        
+        daytwo_value = NA
+        j = 1
+        while (is.na(daytwo_value)) {   
+          daytwo_value = max(fullData$Windgeschwindigkeit[i+j])
+          j = j + 1
+        } 
+        
+        dayone_utc = as.numeric(as.POSIXct(max(fullData$Datum[i])-1, format="%Y-%m-%d"))
+        daytwo_utc = as.numeric(as.POSIXct(max(fullData$Datum[i])+1, format="%Y-%m-%d"))
+        daycurrent_utc = as.numeric(as.POSIXct(max(fullData$Datum[i]), format="%Y-%m-%d"))
+        
+        daycurrent_value = dayone_value + ((daytwo_value - dayone_value) * ((daycurrent_utc - dayone_utc)/(daytwo_utc - dayone_utc)))
+        
+        
+        fullData$Windgeschwindigkeit[i] <- daycurrent_value
+
+      }
+    }
+    
+    
+    dayone_utc = 0
+    daytwo_utc = 0
+    daycurrent_utc = 0
+    
+    dayone = 0
+    daytwo = 0
+    daycurrent = 0
+    
+    dayone_value = 0
+    daytwo_value = 0
+    daycurrent_value = 0  
+    
+    for (i in as.numeric(row.names(fullData))){
+      
+      if(is.na(fullData$Niederschlagsmenge[i])){
+        
+        dayone <- max(fullData$Datum[i])-1
+        daytwo <- max(fullData$Datum[i])+1
+        
+        dayone_value = max(fullData$Niederschlagsmenge[i-1])
+        
+        daytwo_value = NA
+        j = 1
+        while (is.na(daytwo_value)) {   
+          daytwo_value = max(fullData$Niederschlagsmenge[i+j])
+          j = j + 1
+        } 
+        
+        dayone_utc = as.numeric(as.POSIXct(max(fullData$Datum[i])-1, format="%Y-%m-%d"))
+        daytwo_utc = as.numeric(as.POSIXct(max(fullData$Datum[i])+1, format="%Y-%m-%d"))
+        daycurrent_utc = as.numeric(as.POSIXct(max(fullData$Datum[i]), format="%Y-%m-%d"))
+        
+        daycurrent_value = dayone_value + ((daytwo_value - dayone_value) * ((daycurrent_utc - dayone_utc)/(daytwo_utc - dayone_utc)))
+        
+        
+        fullData$Niederschlagsmenge[i] <- daycurrent_value
+        
+        #print(paste("x1: ",dayone_utc))
+        #print(paste("x2: ",daytwo_utc))
+        #print(paste("xi: ",daycurrent_utc))
+        #print(paste("y1: ",dayone_value))
+        #print(paste("y2: ",daytwo_value))
+        #print(paste("yi: ",daycurrent_value))
+        
+        #print("################################")
+        #print("################################")
+        #print("################################")
+      }
+    }
+    
+    
+    ##################Niederschlagsmenge Kategorisieren
+    #Kategorisierung nach eigenem ermessen
+    fullData$Niederschlagsmenge[is.na(fullData$Niederschlagsmenge)] <- as.numeric(0) #0 als Standardwert für nicht vorhandene Daten
+    
+    for (i in as.numeric(row.names(fullData))){
+      checkregen <- as.numeric(fullData$Niederschlagsmenge[i])
+      
+      if(checkregen <= as.numeric(8)){fullData$Niederschlagsmenge[i] <- 1}
+      else if(checkregen > as.numeric(8) && checkregen <= as.numeric(16)){fullData$Niederschlagsmenge[i] <- 2}
+      else if(checkregen > as.numeric(16) && checkregen <= as.numeric(24)){fullData$Niederschlagsmenge[i] <- 3}
+      else if(checkregen > as.numeric(24) && checkregen <= as.numeric(32)){fullData$Niederschlagsmenge[i] <- 4}
+      else if(checkregen > as.numeric(32) && checkregen <= as.numeric(40)){fullData$Niederschlagsmenge[i] <- 5}
+    } 
+    ##################Niederschlagsmenge Kategorisieren
+
+    
+    ##################Windgeschwindigkeit Kategorisieren
+    #Kategorisierung nach https://www.wind-turbine-models.com/winds
+    fullData$Windgeschwindigkeit[is.na(fullData$Windgeschwindigkeit)] <- as.numeric(3) #3 als Standardwert für nicht vorhandene Daten
+    
+    for (i in as.numeric(row.names(fullData))){
+      checkWind <- as.numeric(fullData$Windgeschwindigkeit[i])
+      
+      if(checkWind <= as.numeric(5)){fullData$Windgeschwindigkeit[i] <- "Windstille"}
+      else if(checkWind > as.numeric(5) && checkWind <= as.numeric(11)){fullData$Windgeschwindigkeit[i] <- "leichte_Briese"}
+      else if(checkWind > as.numeric(11) && checkWind <= as.numeric(19)){fullData$Windgeschwindigkeit[i] <- "schwache_Briese"}
+      else if(checkWind > as.numeric(19) && checkWind <= as.numeric(28)){fullData$Windgeschwindigkeit[i] <- "maessige_Briese"}
+      else if(checkWind > as.numeric(28) && checkWind <= as.numeric(38)){fullData$Windgeschwindigkeit[i] <- "frische_Briese"}
+      else if(checkWind > as.numeric(38) && checkWind <= as.numeric(49)){fullData$Windgeschwindigkeit[i] <- "starker_Wind"}
+    } 
+    ##################Windgeschwindigkeit Kategorisieren
+    
+    
+    ##################Temperatur Kategorisieren
+    #Kategorisierung nach Wikiirgendwas
+    fullData$Temperatur <- round(fullData$Temperatur) #3 als Standardwert für nicht vorhandene Daten
+    
+    for (i in as.numeric(row.names(fullData))){
+      checkTemp <- as.numeric(fullData$Temperatur[i])
+      
+      if(checkTemp <= as.numeric(0)){fullData$Temperatur[i] <- "Eisig"}
+      else if(checkTemp > as.numeric(0) && checkTemp <= as.numeric(5)){fullData$Temperatur[i] <- "Kalter_Tag"}
+      else if(checkTemp > as.numeric(5) && checkTemp <= as.numeric(12)){fullData$Temperatur[i] <- "Vegetationstag"}
+      else if(checkTemp > as.numeric(12) && checkTemp <= as.numeric(20)){fullData$Temperatur[i] <- "Fruehling"}
+      else if(checkTemp > as.numeric(20) && checkTemp <= as.numeric(30)){fullData$Temperatur[i] <- "Sommertag"}
+      else if(checkTemp > as.numeric(30)){fullData$Temperatur[i] <- "Heisser_Tag"}
+    } 
+    ##################Temperatur Kategorisieren
     #merge over night stays with "fullData"
     #create column of "Monatscode" for each date of "fullData" to full_join() by "Monatscode"
     #for (e in as.numeric(row.names(fullData))) {

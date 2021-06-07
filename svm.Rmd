@@ -39,6 +39,9 @@ train_dataset <- sample_frac(train_dataset, .10)
 
 
 ## Training the SVM
+```{r}
+colnames(fullData_dummy)
+```
 
 ```{r echo=FALSE}
 # Optimization of an SVM with standard hyper parameters
@@ -48,7 +51,9 @@ model_svm <- svm(Umsatz ~
                    Monat_1 + Monat_2 + Monat_3 + Monat_4 + Monat_5 + Monat_6 + Monat_7 + Monat_8 + Monat_9 + Monat_10 + Monat_11 +
                    Wochentag_Montag + Wochentag_Dienstag + Wochentag_Mittwoch + Wochentag_Donnerstag + Wochentag_Freitag + Wochentag_Samstag +
                    Bewoelkung_1 +  Bewoelkung_2 +  Bewoelkung_3 +  Bewoelkung_4 +  Bewoelkung_5 +  Bewoelkung_6 +  Bewoelkung_7 +
-                   Ferien + Feiertag + Wochenende + Umsatz_naiv + Umsatz_mean, train_dataset)
+                   Windgeschwindigkeit_frische_Briese + Windgeschwindigkeit_leichte_Briese + Windgeschwindigkeit_maessige_Briese +
+                   Windgeschwindigkeit_schwache_Briese + Temperatur_Eisig + Temperatur_Fruehling + Temperatur_Heisser_Tag +
+                   Temperatur_Kalter_Tag + Temperatur_Sommertag + Niederschlagsmenge_1 + Niederschlagsmenge_2 + Niederschlagsmenge_3 +                                      Niederschlagsmenge_4 + Ferien + Feiertag + Wochenende + Umsatz_naiv + Umsatz_mean, train_dataset)
 ```
 
 SVM with hyper paramter tuning via grid search and cross validation
@@ -57,7 +62,10 @@ SVM with hyper paramter tuning via grid search and cross validation
 svm_tune <- tune(svm, Umsatz ~ Warengruppe_Brot +Warengruppe_Broetchen +Warengruppe_Crossaint +Warengruppe_Konditorei + Warengruppe_Kuchen +
                    Monat_1 + Monat_2 + Monat_3 + Monat_4 + Monat_5 + Monat_6 + Monat_7 + Monat_8 + Monat_9 + Monat_10 + Monat_11 +
                    Wochentag_Montag + Wochentag_Dienstag + Wochentag_Mittwoch + Wochentag_Donnerstag + Wochentag_Freitag + Wochentag_Samstag +
-                   Bewoelkung_1 +  Bewoelkung_2 +  Bewoelkung_3 +  Bewoelkung_4 +  Bewoelkung_5 +  Bewoelkung_6 +  Bewoelkung_7 + 
+                   Bewoelkung_1 +  Bewoelkung_2 +  Bewoelkung_3 +  Bewoelkung_4 +  Bewoelkung_5 +  Bewoelkung_6 +  Bewoelkung_7 +
+                   Windgeschwindigkeit_frische_Briese + Windgeschwindigkeit_leichte_Briese + Windgeschwindigkeit_maessige_Briese +
+                   Windgeschwindigkeit_schwache_Briese + Temperatur_Eisig + Temperatur_Fruehling + Temperatur_Heisser_Tag +
+                   Temperatur_Kalter_Tag + Temperatur_Sommertag + Niederschlagsmenge_1 + Niederschlagsmenge_2 + Niederschlagsmenge_3 +                                      
                    Ferien + Feiertag + Wochenende + Umsatz_naiv + Umsatz_mean, data=train_dataset,
                  ranges = list(epsilon = seq(0.1,1,0.1), cost = seq(1,5,0.5))) #2^(-2:3) 
 
