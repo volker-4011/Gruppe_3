@@ -292,6 +292,11 @@ ggplot(plot_prediction) +
 
 ```{r}
 # Vorhersage für einen einzelnen Fall
-#cat(paste0("Vorhergesagter Umsatz:\t", round(validation_predictions[100])))
-#cat(paste0("\nTatsächlicher Umsatz:\t", validation_labels[[1]][100]))
+cat(paste0("Vorhergesagter Umsatz:\t", round(validation_predictions[100])))
+cat(paste0("\nTatsächlicher Umsatz:\t", validation_labels[[1]][100]))
 ```
+
+```{r}
+
+```
+
