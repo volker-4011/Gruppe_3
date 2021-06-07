@@ -387,7 +387,7 @@
       else if(checkTemp > as.numeric(5) && checkTemp <= as.numeric(12)){fullData$Temperatur[i] <- "Vegetationstag"}
       else if(checkTemp > as.numeric(12) && checkTemp <= as.numeric(20)){fullData$Temperatur[i] <- "Fruehling"}
       else if(checkTemp > as.numeric(20) && checkTemp <= as.numeric(30)){fullData$Temperatur[i] <- "Sommertag"}
-      else if(checkTemp > as.numeric(30)){fullData$Temperatur[i] <- "Heisser_Tag"}
+      else if(checkTemp > as.numeric(30)){fullData$Temperatur[i] <- "Heißer_Tag"}
     } 
     ##################Temperatur Kategorisieren
     #merge over night stays with "fullData"
@@ -482,6 +482,7 @@
     newData <- rbind(fullData_dummy[fullData_dummy$Datum == newDay, ])
     
     #Löschen der Daten für den Tag, der vorhergesagt werden soll aus den Trainingsdaten
+    fullData <- subset(fullData, Datum != newDay)
     fullData_dummy <- subset(fullData_dummy, Datum != newDay)
     
     # alle NAs durch 0 ersetzen, damit die svm läuft
