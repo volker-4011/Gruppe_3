@@ -376,19 +376,19 @@
     
     
     ##################Temperatur Kategorisieren
-    #Kategorisierung nach Wikiirgendwas
+    #Kategorisierung nach Wikipedia
     fullData$Temperatur <- round(fullData$Temperatur) #3 als Standardwert für nicht vorhandene Daten
-    
+
     for (i in as.numeric(row.names(fullData))){
       checkTemp <- as.numeric(fullData$Temperatur[i])
-      
-      if(checkTemp <= as.numeric(0)){fullData$Temperatur[i] <- "Eisig"}
-      else if(checkTemp > as.numeric(0) && checkTemp <= as.numeric(5)){fullData$Temperatur[i] <- "Kalter_Tag"}
-      else if(checkTemp > as.numeric(5) && checkTemp <= as.numeric(12)){fullData$Temperatur[i] <- "Vegetationstag"}
-      else if(checkTemp > as.numeric(12) && checkTemp <= as.numeric(20)){fullData$Temperatur[i] <- "Fruehling"}
-      else if(checkTemp > as.numeric(20) && checkTemp <= as.numeric(30)){fullData$Temperatur[i] <- "Sommertag"}
-      else if(checkTemp > as.numeric(30)){fullData$Temperatur[i] <- "Heißer_Tag"}
-    } 
+
+      if(checkTemp <= as.numeric(0)){fullData$Temperatur[i] <- 1} #"Eisig"
+      else if(checkTemp > as.numeric(0) && checkTemp <= as.numeric(5)){fullData$Temperatur[i] <- 2} #"Kalter_Tag"
+      else if(checkTemp > as.numeric(5) && checkTemp <= as.numeric(12)){fullData$Temperatur[i] <- 3} #"Vegetationstag"
+      else if(checkTemp > as.numeric(12) && checkTemp <= as.numeric(20)){fullData$Temperatur[i] <- 4} #"Fruehling"
+      else if(checkTemp > as.numeric(20) && checkTemp <= as.numeric(30)){fullData$Temperatur[i] <- 5} #Sommertag"
+      else if(checkTemp > as.numeric(30)){fullData$Temperatur[i] <- 6} #"Heisser_Tag"
+    }
     ##################Temperatur Kategorisieren
     #merge over night stays with "fullData"
     #create column of "Monatscode" for each date of "fullData" to full_join() by "Monatscode"
@@ -464,18 +464,9 @@
     ###Vorbereiten des Dataframe für die Vorhersage
     
     #Dummy Encoden der Variablen für die Vorhersage
-    dummy_list <- c("Monat", "Wochentag", "Warengruppe" , "Bewoelkung", "Windgeschwindigkeit", "Temperatur", "Niederschlagsmenge")
+    dummy_list <- c("Monat", "Wochentag", "Warengruppe" , "Bewoelkung", "Windgeschwindigkeit", "Niederschlagsmenge", "Jahr", "Temperatur")
     fullData_dummy = dummy_cols(fullData, dummy_list)
     
-    
-    
-    #fullData$Windgeschwindigkeit[is.na(fullData$Windgeschwindigkeit)] <- "Windstille" #3 als Standardwert für nicht vorhandene Daten
-    
-    #fullData_dummy1 <- dummy_cols(fullData, select_columns = c("Warengruppe" , "Bewoelkung", "Windgeschwindigkeit"))
-  
-    #fullData_dummy2 <- dummy_cols(fullData, select_columns =  c("Monat", "Wochentag"))
-    
-    #fullData_dummy <- merge(fullData_dummy1,fullData_dummy2, by="Datum")
     
     #Dataframe für nächsten Tag erstellen (für die Vorhersage)  
     
