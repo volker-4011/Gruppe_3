@@ -100,6 +100,67 @@ output: html_document
 ```
 
 
+
+
+```{r}
+    fullData2 <- fullData
+    dayone_utc = 0
+    daytwo_utc = 0
+    daycurrent_utc = 0
+    
+    dayone = 0
+    daytwo = 0
+    daycurrent = 0
+    
+    dayone_value = 0
+    daytwo_value = 0
+    daycurrent_value = 0  
+    
+    for (i in as.numeric(row.names(fullData2))){
+     
+      if(is.na(fullData2$Bewoelkung[i])){
+
+        dayone <- max(fullData2$Datum[i])-1
+        daytwo <- max(fullData2$Datum[i])+1
+
+        dayone_value = max(fullData2$Bewoelkung[i-1])
+        
+        daytwo_value = NA
+        j = 1
+        while (is.na(daytwo_value)) {   
+          daytwo_value = max(fullData2$Bewoelkung[i+j])
+          j = j + 1
+        } 
+
+        dayone_utc = as.numeric(as.POSIXct(max(fullData2$Datum[i])-1, format="%Y-%m-%d"))
+        daytwo_utc = as.numeric(as.POSIXct(max(fullData2$Datum[i])+1, format="%Y-%m-%d"))
+        daycurrent_utc = as.numeric(as.POSIXct(max(fullData2$Datum[i]), format="%Y-%m-%d"))
+
+        daycurrent_value = dayone_value + ((daytwo_value - dayone_value) * ((daycurrent_utc - dayone_utc)/(daytwo_utc - dayone_utc)))
+        
+        
+        fullData2$Bewoelkung[i] <- round(daycurrent_value)
+
+        #print(paste("x1: ",dayone_utc))
+        #print(paste("x2: ",daytwo_utc))
+        #print(paste("xi: ",daycurrent_utc))
+        #print(paste("y1: ",dayone_value))
+        #print(paste("y2: ",daytwo_value))
+        #print(paste("yi: ",daycurrent_value))
+        
+       # print("################################")
+       # print("################################")
+        #print("################################")
+      }
+    }
+    
+    
+```
+
+
+
+
+
 ```{r}
      Warengruppen <- c("Brot", "Broetchen", "Crossaint", "Konditorei", "Kuchen", "Saisonbrot")
      for (e in as.numeric(row.names(fullData)))
@@ -447,6 +508,30 @@ Umsatz_predicted <- round(py$model$predict(validation_features2))
 
 Umsatz_predicted
 
+
+forecastData$Bewoelkung <- Umsatz_predicted
+
+forecastData$Datum
+
+
+
+
+
+colnamesPred <- colnames(fullData2)
+#colnamesPred
+#typeof(colnamesPred)
+forecastData <- forecastData[colnamesPred]
+
+selectedRows <- (fullData2$Datum %in% forecastData$Datum)
+
+fullData2 <- fullData2[selectedRows,]
+
+
+colnamesPred <- c("Datum","Bewoelkung")
+#colnamesPred
+#typeof(colnamesPred)
+fullData2 <- fullData2[colnamesPred]
+forecastData <- forecastData[colnamesPred]
 
 ```
 
