@@ -540,8 +540,12 @@ forecastData <- forecastData[colnamesPred]
 
 
 ```{r}
-
-
+fullData2 <- rename(fullData2, Bewoelkung_interpolation = Bewoelkung)
+forecastData <- rename(forecastData, Bewoelkung_forecast = Bewoelkung)
+str(fullData2)
+forecastData$Bewoelkung_forecast <- as.numeric(forecastData$Bewoelkung_forecast)
+str(forecastData)
+vergleich <- merge(fullData2,forecastData,by="Datum")
 ```
 
 
