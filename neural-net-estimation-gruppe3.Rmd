@@ -1,8 +1,9 @@
 ---
-title: "neuro"
-author: "Peyman Farshidfar"
-date: "3 6 2021"
-output: html_document
+title: "Neuronales Netz Prediction"
+author: "Peyman Farshidfar, Gerit Imhoff, Pia Fragge, Volker Paatz"
+output:
+  html_document:
+    df_print: paged
 ---
 
 
@@ -115,8 +116,9 @@ validation_predictions <- py$model$predict(validation_features)
 cat(paste0("MAPE on the Training Data:\t", format(mape(training_labels[[1]], training_predictions)*100, digits=3, nsmall=2)))
 cat(paste0("\nMAPE on the Validation Data:\t", format(mape(validation_labels[[1]], validation_predictions)*100, digits=3, nsmall=2)))
 ```
+### Grafischer vergleich der vorhergesagten und der tatsächlichen Preise für die Trainings- und Testdaten ###
 ```{r}
-## Grafischer vergleich der vorhergesagten und der tatsächlichen Preise für die Trainings- und Testdaten
+
 # Zusammenstellung der Daten für die Plots
 data_train <- data.frame(prediction = training_predictions/1000, actual = training_labels[[1]]/1000)
 data_test <- data.frame(prediction = validation_predictions/1000, actual = validation_labels[[1]]/1000)
@@ -138,32 +140,28 @@ ggplot(data_test[1:100,]) +
   ylab("Price in 1.000 USD") 
 ```
 
+### Vorhersage für einen einzelnen Fall ###
+```{r}
+cat(paste0("Vorhergesagter Umsatz:\t", round(validation_predictions[100])))
+cat(paste0("\nTatsächlicher Umsatz:\t", validation_labels[[1]][100]))
+```
 
-
-
-
+### Vorbereiten der Daten zur Vorhersage
 ```{r}
 #Sortieren nach ID
 newData <- newData[order(newData$ID),]
-
 colnamesPred <- colnames(validation_features)
-#colnamesPred
-#typeof(colnamesPred)
 validation_features2 <- newData[colnamesPred]
 
 validation_features2
 
-
-colnamesPred2 <- colnames(training_features)
-#colnamesPred
-#typeof(colnamesPred)
-training_features2 <- newData[colnamesPred2]
-
-training_features2
+#colnamesPred2 <- colnames(training_features)
+#training_features2 <- newData[colnamesPred2]
+#training_features2
 ```
 
 
-### Auswertung der Schätzergebnisse ###
+### Auswertung der Schätzergebnisse mit Warengruppe 6 ###
 ```{r}
 
 # Schätzung der (normierten) Preise für die Trainings- und Testdaten
@@ -190,6 +188,7 @@ prediction
 
 
 ```
+### Grafische Darstellung der Vorhersage mit Warengruppe 6 ###
 ```{r}
 
 ggplot(prediction) +
@@ -198,7 +197,7 @@ ggplot(prediction) +
 
 
 
-
+### Auswertung der Schätzergebnisse ohne Warengruppe 6 ###
 ```{r}
 ##Da das Saisonbrot nur im Oktober, November oder Dezember verkauft wird, überprüfen, ob sich Vorhersagedatum in dem Zeitraum befindet, ansonsten Umsatz_predicted = 0 setzen
 for (i in 1:nrow(prediction)){
@@ -219,13 +218,18 @@ unlink("nne_prediction_2.csv")
 prediction
 ```
 
-
+### Grafische Darstellung der Vorhersage ohne Warengruppe 6 ###
 ```{r}
 
 ggplot(prediction) +
   geom_bar( aes(x=Warengruppe, y=Umsatz_predicted), stat="identity", fill="forestgreen", alpha=0.5)
 ```
 
+```{r}
+
+```
+
+### Grafische Darstellung der beiden Vorhersage-Modelle ###
 ```{r}
 nne_prediction <- read_csv("nne_prediction_2.csv")
 svm_prediction <- read_csv("svm_prediction_2.csv")
@@ -234,10 +238,6 @@ plot_prediction <- svm_prediction
 plot_prediction = rename(plot_prediction, Umsatz_SVM = Umsatz_predicted)
 
 plot_prediction$Umsatz_NNE <- nne_prediction$Umsatz_predicted
-```
-
-
-```{r}
 plot_prediction$Umsatz_NNE
 
 str(plot_prediction)
@@ -267,20 +267,7 @@ ggplot(dft, aes(fill=Methode, y=Umsatz, x=Warengruppe)) +
   scale_fill_manual('Methode', values=c('coral2','steelblue'))
 ```
 
-
-
-
-
-
-
-```{r}
-#ggplot(svm_prediction) +
-#  geom_bar( aes(x=Warengruppe, y=Umsatz_predicted), stat="identity", fill="forestgreen", alpha=0.5)
-
-#ggplot(nne_prediction) +
-#  geom_bar( aes(x=Warengruppe, y=Umsatz_predicted), stat="identity", fill="forestgreen", alpha=0.5)
-```
-
+### Grafische Darstellung der beiden Vorhersage-Modelle ###
 ```{r}
 ggplot(plot_prediction) +
   geom_bar( aes(x=Warengruppe, y=Umsatz_SVM), stat="identity", fill="blue", alpha=0.5) +
@@ -290,13 +277,6 @@ ggplot(plot_prediction) +
 
 
 
-```{r}
-# Vorhersage für einen einzelnen Fall
-cat(paste0("Vorhergesagter Umsatz:\t", round(validation_predictions[100])))
-cat(paste0("\nTatsächlicher Umsatz:\t", validation_labels[[1]][100]))
-```
 
-```{r}
 
-```
 

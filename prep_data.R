@@ -24,6 +24,82 @@
     #####################################################
 
     
+    
+    
+    
+    
+    
+    dayone_utc = 0
+    daytwo_utc = 0
+    daycurrent_utc = 0
+    
+    dayone = 0
+    daytwo = 0
+    daycurrent = 0
+    
+    dayone_value = 0
+    daytwo_value = 0
+    daycurrent_value = 0  
+    
+    for (i in as.numeric(row.names(wetter))){
+     
+      if(is.na(wetter$Wettercode[i])){
+
+        dayone <- max(wetter$Datum[i])-1
+        daytwo <- max(wetter$Datum[i])+1
+
+        dayone_value = max(wetter$Wettercode[i-1])
+        
+        daytwo_value = NA
+        j = 1
+        while (is.na(daytwo_value)) {   
+          daytwo_value = max(wetter$Wettercode[i+j])
+          j = j + 1
+        } 
+
+        dayone_utc = as.numeric(as.POSIXct(max(wetter$Datum[i])-1, format="%Y-%m-%d"))
+        daytwo_utc = as.numeric(as.POSIXct(max(wetter$Datum[i])+1, format="%Y-%m-%d"))
+        daycurrent_utc = as.numeric(as.POSIXct(max(wetter$Datum[i]), format="%Y-%m-%d"))
+
+        daycurrent_value = dayone_value + ((daytwo_value - dayone_value) * ((daycurrent_utc - dayone_utc)/(daytwo_utc - dayone_utc)))
+        
+        
+        wetter$Wettercode[i] <- daycurrent_value
+
+        #print(paste("x1: ",dayone_utc))
+        #print(paste("x2: ",daytwo_utc))
+        #print(paste("xi: ",daycurrent_utc))
+        #print(paste("y1: ",dayone_value))
+        #print(paste("y2: ",daytwo_value))
+        #print(paste("yi: ",daycurrent_value))
+        
+        #print("################################")
+        #print("################################")
+        #print("################################")
+      }
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     ##################Windgeschwindigkeit Kategorisieren
     #Kategorisierung nach https://www.wind-turbine-models.com/winds
     wetter$Windgeschwindigkeit[is.na(wetter$Windgeschwindigkeit)] <- as.numeric(3) #3 als Standardwert für nicht vorhandene Daten
