@@ -506,7 +506,7 @@ validation_features2
 # Schätzung der (normierten) Preise für die Trainings- und Testdaten
 Umsatz_predicted <- round(py$model$predict(validation_features2))
 
-Umsatz_predicted
+
 
 
 forecastData$Bewoelkung <- Umsatz_predicted
@@ -516,23 +516,54 @@ forecastData$Datum
 
 
 
-
-colnamesPred <- colnames(fullData2)
-#colnamesPred
-#typeof(colnamesPred)
-forecastData <- forecastData[colnamesPred]
-
-selectedRows <- (fullData2$Datum %in% forecastData$Datum)
-
-fullData2 <- fullData2[selectedRows,]
-
-
 colnamesPred <- c("Datum","Bewoelkung")
 #colnamesPred
 #typeof(colnamesPred)
 fullData2 <- fullData2[colnamesPred]
 forecastData <- forecastData[colnamesPred]
 
+
+
+
+#colnamesPred <- colnames(fullData2)
+#colnamesPred
+#typeof(colnamesPred)
+#forecastData <- forecastData[colnamesPred]
+
+selectedRows <- (fullData2$Datum %in% forecastData$Datum)
+
+fullData2 <- fullData2[selectedRows,]
+
+fullData2 <- rename(fullData2, Bewoelkung_interpolation = Bewoelkung)
+forecastData <- rename(forecastData, Bewoelkung_forecast = Bewoelkung)
+
+#    unlink("testforecast.csv")
+#    writecsvData <- forecastData
+#    writecsvData <- cbind(ID = 1:nrow(writecsvData), writecsvData)
+
+#    write.csv(writecsvData,"testforecast.csv", append = FALSE, quote = TRUE, sep = ",",
+#              eol = "\n", na = "NA", dec = ".", row.names = FALSE,
+ #             col.names = TRUE, qmethod = c("escape", "double"),
+#              fileEncoding = "")
+#
+
+
+#    unlink("testinterpol.csv")
+#    writecsvData <- fullData2
+#    writecsvData <- cbind(ID = 1:nrow(writecsvData), writecsvData)
+
+#    write.csv(writecsvData,"testinterpol.csv", append = FALSE, quote = TRUE, sep = ",",
+##              eol = "\n", na = "NA", dec = ".", row.names = FALSE,
+#              col.names = TRUE, qmethod = c("escape", "double"),
+#              fileEncoding = "")
+
+#forecastData <- read_csv("testforecast.csv")
+#fullData2 <- read_csv("testinterpol.csv")
+
+
+vergleich <- merge(fullData2,forecastData,by="Datum")
+
+print(vergleich)
 ```
 
 
@@ -540,12 +571,13 @@ forecastData <- forecastData[colnamesPred]
 
 
 ```{r}
-fullData2 <- rename(fullData2, Bewoelkung_interpolation = Bewoelkung)
-forecastData <- rename(forecastData, Bewoelkung_forecast = Bewoelkung)
-str(fullData2)
-forecastData$Bewoelkung_forecast <- as.numeric(forecastData$Bewoelkung_forecast)
-str(forecastData)
-vergleich <- merge(fullData2,forecastData,by="Datum")
+
+#str(fullData2)
+#forecastData$Bewoelkung_forecast <- as.numeric(forecastData$Bewoelkung_forecast)
+#str(forecastData)
+#vergleich <- merge(fullData2,forecastData,by="Datum")
+
+#print(vergleich)
 ```
 
 
