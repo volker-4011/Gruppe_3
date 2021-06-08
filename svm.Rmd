@@ -9,7 +9,6 @@ output: html_notebook
 source("prep_environment.R")
 # Importing Datenaufbereitung
 source("prep_data.R")
-
 ```
 
 
@@ -49,11 +48,7 @@ colnames(fullData_dummy)
 model_svm <- svm(Umsatz ~ 
                    Warengruppe_Brot +Warengruppe_Broetchen +Warengruppe_Crossaint +Warengruppe_Konditorei + Warengruppe_Kuchen +
                    Monat_1 + Monat_2 + Monat_3 + Monat_4 + Monat_5 + Monat_6 + Monat_7 + Monat_8 + Monat_9 + Monat_10 + Monat_11 +
-                   Wochentag_Montag + Wochentag_Dienstag + Wochentag_Mittwoch + Wochentag_Donnerstag + Wochentag_Freitag + Wochentag_Samstag +
-                   Bewoelkung_1 +  Bewoelkung_2 +  Bewoelkung_3 +  Bewoelkung_4 +  Bewoelkung_5 +  Bewoelkung_6 +  Bewoelkung_7 +
-                   Windgeschwindigkeit_frische_Briese + Windgeschwindigkeit_leichte_Briese + Windgeschwindigkeit_maessige_Briese +
-                   Windgeschwindigkeit_schwache_Briese + Temperatur_Eisig + Temperatur_Fruehling + Temperatur_Heisser_Tag +
-                   Temperatur_Kalter_Tag + Temperatur_Sommertag + Niederschlagsmenge_1 + Niederschlagsmenge_2 + Niederschlagsmenge_3 +                                      Niederschlagsmenge_4 + Ferien + Feiertag + Wochenende + Umsatz_naiv + Umsatz_mean, train_dataset)
+                   Wochentag_Montag + Wochentag_Dienstag + Wochentag_Mittwoch + Wochentag_Donnerstag + Wochentag_Freitag + Wochentag_Samstag + Ferien + Feiertag + Wochenende  + Umsatz_naiv + Umsatz_mean + KielerWoche + Temperatur_1 + Temperatur_2 + Temperatur_3 + Temperatur_4 + Temperatur_5 + Sonnenscheindauer, train_dataset)
 ```
 
 SVM with hyper paramter tuning via grid search and cross validation
@@ -61,18 +56,10 @@ SVM with hyper paramter tuning via grid search and cross validation
 ```{r}
 svm_tune <- tune(svm, Umsatz ~ Warengruppe_Brot +Warengruppe_Broetchen +Warengruppe_Crossaint +Warengruppe_Konditorei + Warengruppe_Kuchen +
                    Monat_1 + Monat_2 + Monat_3 + Monat_4 + Monat_5 + Monat_6 + Monat_7 + Monat_8 + Monat_9 + Monat_10 + Monat_11 +
-                   Wochentag_Montag + Wochentag_Dienstag + Wochentag_Mittwoch + Wochentag_Donnerstag + Wochentag_Freitag + Wochentag_Samstag +
-                   Bewoelkung_1 +  Bewoelkung_2 +  Bewoelkung_3 +  Bewoelkung_4 +  Bewoelkung_5 +  Bewoelkung_6 +  Bewoelkung_7 +
-                   Windgeschwindigkeit_frische_Briese + Windgeschwindigkeit_leichte_Briese + Windgeschwindigkeit_maessige_Briese +
-                   Windgeschwindigkeit_schwache_Briese + Temperatur_Eisig + Temperatur_Fruehling + Temperatur_Heisser_Tag +
-                   Temperatur_Kalter_Tag + Temperatur_Sommertag + Niederschlagsmenge_1 + Niederschlagsmenge_2 + Niederschlagsmenge_3 +                                      
-                   Ferien + Feiertag + Wochenende + Umsatz_naiv + Umsatz_mean, data=train_dataset,
-                 ranges = list(epsilon = seq(0.1,1,0.1), cost = seq(1,5,0.5))) #2^(-2:3) 
-
+                   Wochentag_Montag + Wochentag_Dienstag + Wochentag_Mittwoch + Wochentag_Donnerstag + Wochentag_Freitag + Wochentag_Samstag + Ferien + Feiertag + Wochenende  + Umsatz_naiv + Umsatz_mean + KielerWoche + Temperatur_1 + Temperatur_2 + Temperatur_3 + Temperatur_4 + Temperatur_5 + Sonnenscheindauer, data=train_dataset, ranges = list(epsilon = 0.08, cost =1.5)) #seq(0.05,0.3,0.05), cost = seq(1,4,0.5)
 ##Auskommentieren, wenn Modell gespeichert werden soll.
 #saveRDS(svm_tune, "svm_tune1.rds")
-#readRDS("svm_tune1.rds")
-
+#readRDS("svm_tune1.rds") Umsatz_naiv + Umsatz_mean
 svm_tune$best.model
 ```
 
@@ -93,7 +80,6 @@ mape(train_dataset$Umsatz, pred_train)
 ```{r echo=FALSE}
 # Bargraph der mittleren Umsatzdaten nach Wochentag pro Warengruppe
 train_dataset$pred <- pred_train
-
 ggplot(train_dataset)+
   geom_line( aes(x =Datum, y = Umsatz, colour="skyblue"), stat="summary", fun="mean")+
   geom_line( aes(x =Datum, y = pred, colour="orange"), stat="summary", fun="mean")+
@@ -113,7 +99,6 @@ Grafische Darstellung der Ergebnisse
 ```{r}
 # Bargraph der mittleren Umsatzdaten nach Wochentag pro Warengruppe
 train_dataset$pred <- pred_train
-
 ggplot(train_dataset)+
   geom_line( aes(x =Datum, y = Umsatz, colour="skyblue"), stat="summary", fun="mean")+
   geom_line( aes(x =Datum, y = pred, colour="orange"), stat="summary", fun="mean")+
@@ -135,7 +120,6 @@ mape(test_dataset$Umsatz, pred_test)
 ```{r echo=FALSE}
 # Bargraph der mittleren Umsatzdaten nach Wochentag pro Warengruppe
 test_dataset$pred <- pred_test
-
 ggplot(test_dataset)+
   geom_line( aes(x =Datum, y = Umsatz, colour="skyblue"), stat="summary", fun="mean")+
   geom_line( aes(x =Datum, y = pred, colour="orange"), stat="summary", fun="mean")+
@@ -155,7 +139,6 @@ Grafische Darstellung der Ergebnisse
 ```{r}
 # Bargraph der mittleren Umsatzdaten nach Wochentag pro Warengruppe
 test_dataset$pred <- pred_test
-
 ggplot(test_dataset)+
   geom_line( aes(x =Datum, y = Umsatz, colour="skyblue"), stat="summary", fun="mean")+
   geom_line( aes(x =Datum, y = pred, colour="orange"), stat="summary", fun="mean")+
@@ -174,20 +157,16 @@ prediction <- data.frame(Umsatz_predicted)
 prediction$Warengruppe <- newData$Warengruppe
 prediction$Datum <- newData$Datum
 prediction$Monat <- newData$Monat
-
 unlink("svm_prediction_1.csv")
     writecsvData <- prediction
     writecsvData <- cbind(ID = 1:nrow(writecsvData), writecsvData)
-
     write.csv(writecsvData,"svm_prediction_1.csv", append = FALSE, quote = TRUE, sep = ",",
               eol = "\n", na = "NA", dec = ".", row.names = FALSE,
               col.names = TRUE, qmethod = c("escape", "double"),
               fileEncoding = "")
-
 prediction
 ```
 ```{r}
-
 ggplot(prediction) +
   geom_bar( aes(x=Warengruppe, y=Umsatz_predicted), stat="identity", fill="forestgreen", alpha=0.5)
 ```
@@ -205,19 +184,15 @@ for (i in 1:nrow(prediction)){
 unlink("svm_prediction_2.csv")
     writecsvData <- prediction
     writecsvData <- cbind(ID = 1:nrow(writecsvData), writecsvData)
-
     write.csv(writecsvData,"svm_prediction_2.csv", append = FALSE, quote = TRUE, sep = ",",
               eol = "\n", na = "NA", dec = ".", row.names = FALSE,
               col.names = TRUE, qmethod = c("escape", "double"),
               fileEncoding = "")    
-
 prediction
 ```
 
 
 ```{r}
-
 ggplot(prediction) +
   geom_bar( aes(x=Warengruppe, y=Umsatz_predicted), stat="identity", fill="forestgreen", alpha=0.5)
 ```
-
