@@ -1,7 +1,9 @@
 ---
 title: "Bakery Prediction"
-author: Peyman Farshidfar, Gerit Imhoff, Pia Fragge, Volker Paatz
-output: html_notebook
+author: "Peyman Farshidfar, Gerit Imhoff, Pia Fragge, Volker Paatz"
+output:
+  html_document:
+    df_print: paged
 ---
 
 ```{r}
