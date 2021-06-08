@@ -1,29 +1,154 @@
 ---
-title: "Bakery Prediction"
-author: "Peyman Farshidfar, Gerit Imhoff, Pia Fragge, Volker Paatz"
-output:
-  html_document:
-    df_print: paged
+title: "Bakery Turnover Prediction"
+author: Peyman Farshidfar, Gerit Imhoff, Pia Fragge, Volker Paatz
+output: html_notebook
 ---
 
-```{r}
-# Importing Function Packages
-source("prep_environment.R")
-# Importing Datenaufbereitung
-source("prep_data.R")
-
+```{r echo=FALSE}
+# # Importing Function Packages
+# source("prep_environment.R")
+# # Importing Datenaufbereitung
+# source("prep_data.R")
 ```
-# Variablen/ Grafen
-
-```{r}
-# To be filled
-
+# Variablen zur Umsatzvorhersage
+##Variable Monat
+Mittlere Umsatzdaten nach Monat und Warengruppe
+```{r echo=FALSE}
+## Bargraph der mittleren Umsatzdaten nach Monat + Konfidenzintervall 95%
+mean_Monat <- fullData %>%
+  group_by(Monat, Warengruppe) %>%
+  summarise( 
+    n=n(),
+    mean=mean(Umsatz),
+    sd=sd(Umsatz)
+  ) %>%
+  mutate( se=sd/sqrt(n))  %>%
+  mutate( ic=se * qt((1-0.05)/2 + .5, n-1))
+ggplot(mean_Monat)+
+  geom_bar( aes(x=Monat, y = mean), stat="identity", fill="skyblue")+
+  xlab("Monat") + ylab("Mittlerer Umsatz")+
+  scale_x_continuous(breaks = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12))+
+  geom_errorbar( aes(x = Monat, ymin = mean-ic, ymax = mean+ic), width=0.4, colour="orange", alpha=0.9, size=1.3)+
+  facet_wrap(~Warengruppe , scales="free")
 ```
+##Variable Ferien
+Mittlere Umsatzdaten nach Schulferien Schleswig Holstein und Warengruppe
+```{r}
+## Bargraph der mittleren Umsatzdaten nach Ferien ja/nein + Konfidenzintervall 95%
+mean_Ferien <- fullData %>%
+  group_by(Ferien, Warengruppe) %>%
+  summarise( 
+    n=n(),
+    mean=mean(Umsatz),
+    sd=sd(Umsatz)
+  ) %>%
+  mutate( se=sd/sqrt(n))  %>%
+  mutate( ic=se * qt((1-0.05)/2 + .5, n-1))
+# basic histogram
+ggplot(mean_Ferien)+
+  geom_bar( aes(x=Ferien, y = mean), stat="identity", fill="skyblue")+
+  xlab("Ferien") + ylab("Mittlerer Umsatz")+
+  scale_x_continuous(breaks = c(0, 1), labels = c('keine Ferien','Ferien'))+
+  geom_errorbar( aes(x = Ferien, ymin = mean-ic, ymax = mean+ic), width=0.4, colour="orange", alpha=0.9, size=1.3)+
+  facet_wrap(~Warengruppe , scales="free")
+```
+##Variable Feiertag
+Mittlere Umsatzdaten nach Feiertag Schleswig Holstein und Warengruppe
+```{r}
+## Bargraph der mittleren Umsatzdaten nach Feiertag ja/nein + Konfidenzintervall 95%
+mean_Feiertag <- fullData %>%
+  group_by(Feiertag, Warengruppe) %>%
+  summarise( 
+    n=n(),
+    mean=mean(Umsatz),
+    sd=sd(Umsatz)
+  ) %>%
+  mutate( se=sd/sqrt(n))  %>%
+  mutate( ic=se * qt((1-0.05)/2 + .5, n-1))
+# basic histogram
+ggplot(mean_Feiertag)+
+  geom_bar( aes(x=Feiertag, y = mean), stat="identity", fill="skyblue")+
+  xlab("Feiertag") + ylab("Mittlerer Umsatz")+
+  scale_x_continuous(breaks = c(0, 1), labels = c('kein Feiertag','Feiertag'))+
+  geom_errorbar( aes(x = Feiertag, ymin = mean-ic, ymax = mean+ic), width=0.4, colour="orange", alpha=0.9, size=1.3)+
+  facet_wrap(~Warengruppe , scales="free")
+```
+##Variable Temperaturgruppen
+Mittlere Umsatzdaten nach Temperaturgruppen und Warengruppe
+```{r}
+## Bargraph der mittleren Umsatzdaten nach Temperaturgruppen ja/nein + Konfidenzintervall 95%
+#1: Eisig
+#2: Kalter Tag
+#3: Vegetationstag
+#4: Frühling
+#5: Sommertag
+#6: Heißer Tag
+mean_Temperatur <- fullData %>%
+  group_by(Temperatur, Warengruppe) %>%
+  summarise( 
+    n=n(),
+    mean=mean(Umsatz),
+    sd=sd(Umsatz)
+  ) %>%
+  mutate( se=sd/sqrt(n))  %>%
+  mutate( ic=se * qt((1-0.05)/2 + .5, n-1))
+# basic histogram
+ggplot(mean_Temperatur)+
+  geom_bar( aes(x = Temperatur, y = mean), stat="identity", fill="skyblue")+
+  xlab("Temperaturklassen von 1 = Eisig bis 6 = Heiß") + ylab("Mittlerer Umsatz")+
+  scale_x_continuous(breaks = c(1,2,3,4,5,6))+
+  geom_errorbar( aes(x = Temperatur, ymin = mean-ic, ymax = mean+ic), width=0.4, colour="orange", alpha=0.9, size=1.3)+
+  facet_wrap(~Warengruppe , scales="free")
+  
+```
+##Variable Niederschlagsmenge
+Mittlere Umsatzdaten nach Niederschlagsmenge und Warengruppe
+```{r}
+## Bargraph der mittleren Umsatzdaten nach Niederschlagsmenge ja/nein 
+ggplot(fullData)+
+  geom_bar( aes(x = Niederschlagsmenge, y = Umsatz), stat="summary", fun="mean", fill="skyblue")+
+  xlab("Niederschlagsmenge von 1 = Trocken bis 5 = Starkregen") + ylab("Mittlerer Umsatz")+
+  facet_wrap(~Warengruppe , scales="free")
+  
+```
+##Variable Mittlerer Umsatz
+Variable "Mittlerer Umsatz pro Monat und Warengruppe"
+```{r}
+# Bargraph der Umsatzdaten und mittlerer Umsatz pro Monat nach Zeit für Warengruppe Brot
+ggplot(fullData[fullData$Warengruppe == "Broetchen",])+
+  geom_line( aes(x = Datum, y = Umsatz, colour="skyblue"), stat="summary", fun="mean")+
+  geom_line( aes(x = Datum, y = Umsatz_mean, colour="red"), stat="summary", fun="mean", size=1.5)+
+  xlab("Jahr") + ylab("Umsatz")+
+  scale_color_discrete(name = "Umsatz", labels = c("Mittelwert pro Monat", "tatsächlich"))+
+  ggtitle("Warengruppe Brot")
+```
+##Variable Naiv Forecast
+Umsatz von vor 7 Tagen pro Warengruppe, wenn Umsatz von vor 7 tagen nicht vorhenden ist, wird aktueller Umsatz verwendet
+```{r}
+# Naiv Forecast: Umsatz von vor 7 Tagen für Warengruppe Brot
+ggplot(fullData[fullData$Warengruppe == "Broetchen",])+
+  geom_line( aes(x = Datum, y = Umsatz, colour="skyblue"), stat="summary", fun="mean")+
+  geom_line( aes(x = Datum, y = Umsatz_naiv, colour="red"), stat="summary", fun="mean")+
+  xlab("Jahr") + ylab("Umsatz")+
+  xlim(as.Date("2015/01/01"), as.Date("2016/12/25"))+
+  scale_color_discrete(name = "Umsatz", labels = c("Umsatz von vor 7 Tagen", "aktueller Umsatz"))+
+  ggtitle("Warengruppe Brot")
+```
+
+## Weitere getestete Variablen
+<ul>
+<li>Sonnenscheindauer (Quelle: www.dwd.de) </li>
+<li>Luftfeuchtigkeit (Quelle: www.dwd.de) </li>
+<li>Windchillfaktor / gefühlte Temperatur </li>
+<li>Übernachtungszahlen in Kiel (Quelle: www.statistik-nord.de) </li>
+<li>Gesamtumsatz pro Monat Einzelhandel Schleswig Holstein (Quelle: www.statistik-nord.de) </li>
+<li>Gesamtumsatz pro Monat Gastgewerbe Schleswig Holstein (Quelle: www.statistik-nord.de) </li>
+</ul>
 
 # SVM Prediction
-## Splitting Training and Test Data
+## Aufteilen in Training und Test Daten
 
-```{r}
+```{r echo=FALSE}
 # Setting the random counter to a fixed value, so the random initialization stays the same (the random split is always the same)
 set.seed(1)
 # Shuffling the dataset (to get random orders within each dataset as well)
@@ -33,35 +158,31 @@ fullData_dummy <- fullData_dummy[new_row_order,]
 # The probability of being in one of the groups results then in crresponding group sizes
 assignment <- sample(1:2, size = nrow(fullData_dummy), prob = c(.9, .1), replace = TRUE)
 # Create training and test datasets
-train_dataset <- fullData_dummy[assignment == 1, ]  # subset house_pricing to training indices only
-test_dataset <- fullData_dummy[assignment == 2, ]  # subset house_pricing to test indices only
+train_dataset <- fullData_dummy[assignment == 1, ]
+test_dataset <- fullData_dummy[assignment == 2, ] 
 ```
 
 
-## Data Preparation
+## Auswählen der Features
 
 ```{r}
-# Uncomment the next line if you want to check the correctness of your following code for the svm estimation with a small (and computationally fast) part of the training data set
+dummy_list_svm <- c("Monat", "Wochentag", "Warengruppe" , "Temperatur")
+feature_list_svm <- c(dummy_list_svm, "Ferien", "Feiertage", "KielerWoche","Umsatz_mean","Umsatz_naiv")
+# Bilder einer Untermenge zum Trainieren
 train_dataset <- sample_frac(train_dataset, .10)
 ```
 
 
-## Training the SVM
+## Training der SVM
 
 SVM with hyper paramter tuning via grid search and cross validation
 
 ```{r}
 svm_tune <- tune(svm, Umsatz ~ Warengruppe_Brot +Warengruppe_Broetchen +Warengruppe_Crossaint +Warengruppe_Konditorei + Warengruppe_Kuchen +
                    Monat_1 + Monat_2 + Monat_3 + Monat_4 + Monat_5 + Monat_6 + Monat_7 + Monat_8 + Monat_9 + Monat_10 + Monat_11 +
-                   Wochentag_Montag + Wochentag_Dienstag + Wochentag_Mittwoch + Wochentag_Donnerstag + Wochentag_Freitag + Wochentag_Samstag +
-                   Bewoelkung_1 +  Bewoelkung_2 +  Bewoelkung_3 +  Bewoelkung_4 +  Bewoelkung_5 +  Bewoelkung_6 +  Bewoelkung_7 + 
-                   Ferien + Feiertag + Wochenende + Umsatz_naiv + Umsatz_mean, data=train_dataset,
-                 ranges = list(epsilon = seq(0.1,1,0.1), cost = seq(1,5,0.5))) #2^(-2:3) 
-
+                   Wochentag_Montag + Wochentag_Dienstag + Wochentag_Mittwoch + Wochentag_Donnerstag + Wochentag_Freitag + Wochentag_Samstag + Ferien + Feiertag + Wochenende  + Umsatz_naiv + Umsatz_mean + KielerWoche + Temperatur_1 + Temperatur_2 + Temperatur_3 + Temperatur_4 + Temperatur_5 + Sonnenscheindauer, data=train_dataset, ranges = list(epsilon = 0.08, cost =1.5)) #seq(0.05,0.3,0.05), cost = seq(1,4,0.5)
 ##Auskommentieren, wenn Modell gespeichert werden soll.
 #saveRDS(svm_tune, "svm_tune1.rds")
-#readRDS("svm_tune1.rds")
-
 svm_tune$best.model
 ```
 
@@ -82,7 +203,6 @@ Grafische Darstellung der Ergebnisse
 ```{r}
 # Bargraph der mittleren Umsatzdaten nach Wochentag pro Warengruppe
 train_dataset$pred <- pred_train
-
 ggplot(train_dataset)+
   geom_line( aes(x =Datum, y = Umsatz, colour="skyblue"), stat="summary", fun="mean")+
   geom_line( aes(x =Datum, y = pred, colour="orange"), stat="summary", fun="mean")+
@@ -104,7 +224,6 @@ Grafische Darstellung der Ergebnisse
 ```{r}
 # Bargraph der mittleren Umsatzdaten nach Wochentag pro Warengruppe
 test_dataset$pred <- pred_test
-
 ggplot(test_dataset)+
   geom_line( aes(x =Datum, y = Umsatz, colour="skyblue"), stat="summary", fun="mean")+
   geom_line( aes(x =Datum, y = pred, colour="orange"), stat="summary", fun="mean")+
@@ -123,14 +242,12 @@ prediction <- data.frame(Umsatz_predicted)
 prediction$Warengruppe <- newData$Warengruppe
 prediction$Datum <- newData$Datum
 prediction$Monat <- newData$Monat
-
 ##Da das Saisonbrot nur im Oktober, November oder Dezember verkauft wird, überprüfen, ob sich Vorhersagedatum in dem Zeitraum befindet, ansonsten Umsatz_predicted = 0 setzen
 for (i in 1:nrow(prediction)){
   if ((!(prediction$Monat[i]==10 | prediction$Monat[i]==11 | prediction$Monat[i]==12)) & prediction$Warengruppe[i]=="Saisonbrot") {
     prediction$Umsatz_predicted[i] <- 0
   }
 }
-
 prediction
 ```
 
