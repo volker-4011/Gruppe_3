@@ -1,21 +1,20 @@
 ---
 title: "Bakery Turnover Prediction"
-author: Peyman Farshidfar, Gerit Imhoff, Pia Fragge, Volker Paatz
+author: "Peyman Farshidfar, Gerit Imhoff, Pia Fragge, Volker Paatz"
 output: html_notebook
 ---
 
-```{r echo=FALSE}
+```{r include=FALSE}
 # # Importing Function Packages
-# source("prep_environment.R")
+ source("prep_environment.R")
 # # Importing Datenaufbereitung
-# source("prep_data.R")
-
+ source("prep_data.R")
 ```
 # Variablen zur Umsatzvorhersage
-##Variable Monat
-Mittlere Umsatzdaten nach Monat und Warengruppe
+## Variable Monat
+### Mittlere Umsatzdaten nach Monat und Warengruppe
 ```{r echo=FALSE}
-## Bargraph der mittleren Umsatzdaten nach Monat + Konfidenzintervall 95%
+# Bargraph der mittleren Umsatzdaten nach Monat + Konfidenzintervall 95%
 mean_Monat <- fullData %>%
   group_by(Monat, Warengruppe) %>%
   summarise( 
@@ -25,7 +24,6 @@ mean_Monat <- fullData %>%
   ) %>%
   mutate( se=sd/sqrt(n))  %>%
   mutate( ic=se * qt((1-0.05)/2 + .5, n-1))
-
 ggplot(mean_Monat)+
   geom_bar( aes(x=Monat, y = mean), stat="identity", fill="skyblue")+
   xlab("Monat") + ylab("Mittlerer Umsatz")+
@@ -33,10 +31,10 @@ ggplot(mean_Monat)+
   geom_errorbar( aes(x = Monat, ymin = mean-ic, ymax = mean+ic), width=0.4, colour="orange", alpha=0.9, size=1.3)+
   facet_wrap(~Warengruppe , scales="free")
 ```
-##Variable Ferien
-Mittlere Umsatzdaten nach Schulferien Schleswig Holstein und Warengruppe
+## Variable Ferien
+### Mittlere Umsatzdaten nach Schulferien Schleswig Holstein und Warengruppe
 ```{r}
-## Bargraph der mittleren Umsatzdaten nach Ferien ja/nein + Konfidenzintervall 95%
+#Bargraph der mittleren Umsatzdaten nach Ferien ja/nein + Konfidenzintervall 95%
 mean_Ferien <- fullData %>%
   group_by(Ferien, Warengruppe) %>%
   summarise( 
@@ -54,8 +52,8 @@ ggplot(mean_Ferien)+
   geom_errorbar( aes(x = Ferien, ymin = mean-ic, ymax = mean+ic), width=0.4, colour="orange", alpha=0.9, size=1.3)+
   facet_wrap(~Warengruppe , scales="free")
 ```
-##Variable Feiertag
-Mittlere Umsatzdaten nach Feiertag Schleswig Holstein und Warengruppe
+## Variable Feiertag
+### Mittlere Umsatzdaten nach Feiertag Schleswig Holstein und Warengruppe
 ```{r}
 ## Bargraph der mittleren Umsatzdaten nach Feiertag ja/nein + Konfidenzintervall 95%
 mean_Feiertag <- fullData %>%
@@ -75,8 +73,8 @@ ggplot(mean_Feiertag)+
   geom_errorbar( aes(x = Feiertag, ymin = mean-ic, ymax = mean+ic), width=0.4, colour="orange", alpha=0.9, size=1.3)+
   facet_wrap(~Warengruppe , scales="free")
 ```
-##Variable Temperaturgruppen
-Mittlere Umsatzdaten nach Temperaturgruppen und Warengruppe
+## Variable Temperaturgruppen
+### Mittlere Umsatzdaten nach Temperaturgruppen und Warengruppe
 ```{r}
 ## Bargraph der mittleren Umsatzdaten nach Temperaturgruppen ja/nein + Konfidenzintervall 95%
 #1: Eisig
@@ -103,19 +101,18 @@ ggplot(mean_Temperatur)+
   facet_wrap(~Warengruppe , scales="free")
   
 ```
-##Variable Niederschlagsmenge
-Mittlere Umsatzdaten nach Niederschlagsmenge und Warengruppe
+## Variable Niederschlagsmenge
+### Mittlere Umsatzdaten nach Niederschlagsmenge und Warengruppe
 ```{r}
 ## Bargraph der mittleren Umsatzdaten nach Niederschlagsmenge ja/nein 
-
 ggplot(fullData)+
   geom_bar( aes(x = Niederschlagsmenge, y = Umsatz), stat="summary", fun="mean", fill="skyblue")+
   xlab("Niederschlagsmenge von 1 = Trocken bis 5 = Starkregen") + ylab("Mittlerer Umsatz")+
   facet_wrap(~Warengruppe , scales="free")
   
 ```
-##Variable Mittlerer Umsatz
-Variable "Mittlerer Umsatz pro Monat und Warengruppe"
+## Variable Mittlerer Umsatz
+### Variable "Mittlerer Umsatz pro Monat und Warengruppe"
 ```{r}
 # Bargraph der Umsatzdaten und mittlerer Umsatz pro Monat nach Zeit für Warengruppe Brot
 ggplot(fullData[fullData$Warengruppe == "Broetchen",])+
@@ -125,8 +122,8 @@ ggplot(fullData[fullData$Warengruppe == "Broetchen",])+
   scale_color_discrete(name = "Umsatz", labels = c("Mittelwert pro Monat", "tatsächlich"))+
   ggtitle("Warengruppe Brot")
 ```
-##Variable Naiv Forecast
-Umsatz von vor 7 Tagen pro Warengruppe, wenn Umsatz von vor 7 tagen nicht vorhenden ist, wird aktueller Umsatz verwendet
+## Variable Naiv Forecast
+### Umsatz von vor 7 Tagen pro Warengruppe, wenn Umsatz von vor 7 tagen nicht vorhenden ist, wird aktueller Umsatz verwendet
 ```{r}
 # Naiv Forecast: Umsatz von vor 7 Tagen für Warengruppe Brot
 ggplot(fullData[fullData$Warengruppe == "Broetchen",])+
@@ -171,7 +168,6 @@ test_dataset <- fullData_dummy[assignment == 2, ]
 ```{r}
 dummy_list_svm <- c("Monat", "Wochentag", "Warengruppe" , "Temperatur")
 feature_list_svm <- c(dummy_list_svm, "Ferien", "Feiertage", "KielerWoche","Umsatz_mean","Umsatz_naiv")
-
 # Bilder einer Untermenge zum Trainieren
 train_dataset <- sample_frac(train_dataset, .10)
 ```
@@ -179,16 +175,14 @@ train_dataset <- sample_frac(train_dataset, .10)
 
 ## Training der SVM
 
-SVM with hyper paramter tuning via grid search and cross validation
+### SVM with hyper paramter tuning via grid search and cross validation
 
 ```{r}
 svm_tune <- tune(svm, Umsatz ~ Warengruppe_Brot +Warengruppe_Broetchen +Warengruppe_Crossaint +Warengruppe_Konditorei + Warengruppe_Kuchen +
                    Monat_1 + Monat_2 + Monat_3 + Monat_4 + Monat_5 + Monat_6 + Monat_7 + Monat_8 + Monat_9 + Monat_10 + Monat_11 +
                    Wochentag_Montag + Wochentag_Dienstag + Wochentag_Mittwoch + Wochentag_Donnerstag + Wochentag_Freitag + Wochentag_Samstag + Ferien + Feiertag + Wochenende  + Umsatz_naiv + Umsatz_mean + KielerWoche + Temperatur_1 + Temperatur_2 + Temperatur_3 + Temperatur_4 + Temperatur_5 + Sonnenscheindauer, data=train_dataset, ranges = list(epsilon = 0.08, cost =1.5)) #seq(0.05,0.3,0.05), cost = seq(1,4,0.5)
-
 ##Auskommentieren, wenn Modell gespeichert werden soll.
 #saveRDS(svm_tune, "svm_tune1.rds")
-
 svm_tune$best.model
 ```
 
@@ -196,20 +190,19 @@ svm_tune$best.model
 ## Checking the Prediction Quality
 
 
-### Trainig Data
+## Trainig Data
 
-SVM with hyperparameters tuned via grid search and cross validation
+### SVM with hyperparameters tuned via grid search and cross validation
 ```{r}
 # Calculating the prediction for the training data using the best model according to the grid search
 pred_train <- predict(svm_tune$best.model, train_dataset)
 # Calculating the prediction quality for the training data using the MAPE
 mape(train_dataset$Umsatz, pred_train)
 ```
-Grafische Darstellung der Ergebnisse
+### Grafische Darstellung der Ergebnisse
 ```{r}
 # Bargraph der mittleren Umsatzdaten nach Wochentag pro Warengruppe
 train_dataset$pred <- pred_train
-
 ggplot(train_dataset)+
   geom_line( aes(x =Datum, y = Umsatz, colour="skyblue"), stat="summary", fun="mean")+
   geom_line( aes(x =Datum, y = pred, colour="orange"), stat="summary", fun="mean")+
@@ -220,18 +213,17 @@ ggplot(train_dataset)+
 
 ### Test Data
 
-SVM with hyperparameters tuned via grid search and cross validation
+## SVM with hyperparameters tuned via grid search and cross validation
 ```{r}
 # Calculating the prediction for the test data using the best model according to the grid search
 pred_test <- predict(svm_tune$best.model, test_dataset)
 # Calculating the prediction quality for the test data using the MAPE
 mape(test_dataset$Umsatz, pred_test)
 ```
-Grafische Darstellung der Ergebnisse
+## Grafische Darstellung der Ergebnisse
 ```{r}
 # Bargraph der mittleren Umsatzdaten nach Wochentag pro Warengruppe
 test_dataset$pred <- pred_test
-
 ggplot(test_dataset)+
   geom_line( aes(x =Datum, y = Umsatz, colour="skyblue"), stat="summary", fun="mean")+
   geom_line( aes(x =Datum, y = pred, colour="orange"), stat="summary", fun="mean")+
@@ -240,9 +232,9 @@ ggplot(test_dataset)+
   scale_color_discrete(name = "Umsatz", labels = c("vorhergesagt", "tatsächlich"))
 ```
 
-### New Data
+## New Data
 
-SVM with a standard hyperparameters
+## SVM with a standard hyperparameters
 ```{r}
 # Calculating the prediction for the new data (next day) using the best model according to the grid search
 Umsatz_predicted <- predict(svm_tune$best.model, newData)
@@ -250,15 +242,281 @@ prediction <- data.frame(Umsatz_predicted)
 prediction$Warengruppe <- newData$Warengruppe
 prediction$Datum <- newData$Datum
 prediction$Monat <- newData$Monat
-
 ##Da das Saisonbrot nur im Oktober, November oder Dezember verkauft wird, überprüfen, ob sich Vorhersagedatum in dem Zeitraum befindet, ansonsten Umsatz_predicted = 0 setzen
 for (i in 1:nrow(prediction)){
   if ((!(prediction$Monat[i]==10 | prediction$Monat[i]==11 | prediction$Monat[i]==12)) & prediction$Warengruppe[i]=="Saisonbrot") {
     prediction$Umsatz_predicted[i] <- 0
   }
 }
-
 prediction
 ```
 
 # Neuronales Netz
+### Installation von Python und TensorFlow (nur einmalig nötig)
+```{r}
+#install.packages("reticulate")
+library(reticulate)
+# Installation von miniconda (falls nicht vorhanden)
+#install_miniconda(update=TRUE)
+# Anlegen einer speziellen Python Umgebung
+#conda_create("r-reticulate", packages = "python=3.6")
+# Installieren der Pakete in der angelegten Umgebung
+#conda_install("r-reticulate", "pandas")
+#conda_install("r-reticulate", "numpy")
+#conda_install("r-reticulate", "tensorflow")
+#conda_install("r-reticulate", "h5py")
+ 
+# Verwenden der speziellen Python Umgebung die zuvor erstellt wurde
+use_condaenv("r-reticulate")
+```
+
+### Aufruf des Skripts zur Datenaufbereitung
+```{r, include=FALSE}
+source("neural-net-data-preparation-gruppe3.R", encoding = "UTF-8")
+```
+
+
+### Laden benötigter Packages
+```{r, include=FALSE}
+library(reticulate)
+library(ggplot2)
+library(Metrics)
+```
+
+
+### Definition des Neuronalen Netzes
+```{python}
+# Import needed Python libraries and functions
+import numpy as np
+import tensorflow as tf
+from tensorflow.keras.layers import Dense
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.layers.experimental import preprocessing
+
+# Create a Normalization layer and use the means and variances of the training features for the normalization
+normalizer = preprocessing.Normalization()
+normalizer.adapt(r.training_features.values)
+# The argument "shape" for the definition of the input layer must include the number of variables (features) used for the model. To automatically calculate this number, we use the "r.training_features.keys()", which returns the list of variable names of the dataframe "training_features". Further, the function len() returns the length of this list of variable names (i.e. the number of variables in the input).
+inputs = tf.keras.Input(shape=[len(r.training_features.keys())])
+# Normalization layer
+x = normalizer(inputs)
+# 1st hidden layer
+x = Dense(105, activation='relu')(x)
+# 2nd hidden layer
+x = Dense(4, activation='relu')(x)
+# Output layer
+output = tf.keras.layers.Dense(1)(x)
+# Model definition
+model = tf.keras.Model(inputs, output)
+# Ausgabe einer Zusammenfassung zur Form des Modells, das geschaetzt wird (nicht notwendig)
+model.summary()
+```
+
+
+### Schätzung des neuronalen Netzes
+```{python}
+# Definition der Kosten-(Loss-)Funktion und der Optimierungsfunktion mit seinen Hyperparametern
+model.compile(loss="mse", optimizer=Adam(lr=0.001))
+# Schaetzung des Modells
+history = model.fit(r.training_features, r.training_labels, epochs=50,
+                    validation_data = (r.validation_features, r.validation_labels), verbose=0)
+# Ggf. Speichern des geschaetzten Modells
+model.save("python_model.h5")
+```
+
+
+### Auswertung der Modelloptimierung
+```{r}
+# Grafische Ausgabe der Modelloptimierung
+# create data
+data <- data.frame(val_loss = unlist(py$history$history$val_loss),
+                  loss = unlist(py$history$history$loss))
+# Plot
+ggplot(data[-1,]) +
+  geom_line( aes(x=1:length(val_loss), y=val_loss, colour = "Validation Loss" )) +
+  geom_line( aes(x=1:length(loss), y=loss, colour = "Training Loss" )) +
+  scale_colour_manual( values = c("Training Loss"="blue", "Validation Loss"="red") ) +
+  labs(title="Loss Function Values During Optimization") +
+  xlab("Iteration Number") +
+  ylab("Loss") 
+```
+
+
+### (Ggf.) Laden eines gespeicherten Neuronalen Netzes ###
+```{python}
+model = tf.keras.models.load_model("python_model.h5")
+```
+
+
+
+### Auswertung der Schätzergebnisse ###
+```{r}
+
+# Schätzung der (normierten) Preise für die Trainings- und Testdaten
+training_predictions <- py$model$predict(training_features)
+validation_predictions <- py$model$predict(validation_features)
+# Vergleich der Gütekriterien für die Traingings- und Testdaten
+
+
+cat(paste0("MAPE on the Training Data:\t", format(mape(training_labels[[1]], training_predictions)*100, digits=3, nsmall=2)))
+cat(paste0("\nMAPE on the Validation Data:\t", format(mape(validation_labels[[1]], validation_predictions)*100, digits=3, nsmall=2)))
+```
+### Grafischer vergleich der vorhergesagten und der tatsächlichen Preise für die Trainings- und Testdaten ###
+```{r}
+
+# Zusammenstellung der Daten für die Plots
+data_train <- data.frame(prediction = training_predictions/1000, actual = training_labels[[1]]/1000)
+data_test <- data.frame(prediction = validation_predictions/1000, actual = validation_labels[[1]]/1000)
+# Plot der Ergebnisse der Trainingsdaten
+ggplot(data_train[1:100,]) +
+  geom_line( aes(x=1:length(prediction), y=prediction, colour = "Predicted Values" )) +
+  geom_line( aes(x=1:length(actual), y=actual, colour = "Actual Values" )) +
+  scale_colour_manual( values = c("Predicted Values"="blue", "Actual Values"="red") ) +
+  labs(title="Predicted and Actual Values for the Training Data") +
+  xlab("Case Number") +
+  ylab("Umsatz") 
+# Plot der Ergebnisse der Validierungsdaten
+ggplot(data_test[1:100,]) +
+  geom_line( aes(x=1:length(prediction), y=prediction, colour = "Predicted Values" )) +
+  geom_line( aes(x=1:length(actual), y=actual, colour = "Actual Values" )) +
+  scale_colour_manual( values = c("Predicted Values"="blue", "Actual Values"="red") ) +
+  labs(title="Predicted and Actual Values for the Test Data") +
+  xlab("Case Number") +
+  ylab("Umsatz") 
+```
+
+### Vorhersage für einen einzelnen Fall ###
+```{r}
+cat(paste0("Vorhergesagter Umsatz:\t", round(validation_predictions[100])))
+cat(paste0("\nTatsächlicher Umsatz:\t", validation_labels[[1]][100]))
+```
+
+### Vorbereiten der Daten zur Vorhersage
+```{r}
+#Sortieren nach ID
+newData <- newData[order(newData$ID),]
+colnamesPred <- colnames(validation_features)
+validation_features2 <- newData[colnamesPred]
+
+validation_features2
+
+#colnamesPred2 <- colnames(training_features)
+#training_features2 <- newData[colnamesPred2]
+#training_features2
+```
+
+
+### Auswertung der Schätzergebnisse mit Warengruppe 6 ###
+```{r}
+
+# Schätzung der (normierten) Preise für die Trainings- und Testdaten
+Umsatz_predicted <- py$model$predict(validation_features2)
+
+prediction <- data.frame(Umsatz_predicted)
+prediction$Warengruppe <- newData$Warengruppe
+prediction$Datum <- newData$Datum
+prediction$Monat <- newData$Monat
+
+
+
+
+unlink("nne_prediction_1.csv")
+    writecsvData <- prediction
+    writecsvData <- cbind(ID = 1:nrow(writecsvData), writecsvData)
+
+    write.csv(writecsvData,"nne_prediction_1.csv", append = FALSE, quote = TRUE, sep = ",",
+              eol = "\n", na = "NA", dec = ".", row.names = FALSE,
+              col.names = TRUE, qmethod = c("escape", "double"),
+              fileEncoding = "")
+
+prediction
+
+
+```
+### Grafische Darstellung der Vorhersage mit Warengruppe 6 ###
+```{r}
+
+ggplot(prediction) +
+  geom_bar( aes(x=Warengruppe, y=Umsatz_predicted), stat="identity", fill="forestgreen", alpha=0.5)
+```
+
+
+
+### Auswertung der Schätzergebnisse ohne Warengruppe 6 ###
+```{r}
+##Da das Saisonbrot nur im Oktober, November oder Dezember verkauft wird, überprüfen, ob sich Vorhersagedatum in dem Zeitraum befindet, ansonsten Umsatz_predicted = 0 setzen
+for (i in 1:nrow(prediction)){
+  if ((!(prediction$Monat[i]==10 | prediction$Monat[i]==11 | prediction$Monat[i]==12)) & prediction$Warengruppe[i]=="Saisonbrot") {
+    prediction$Umsatz_predicted[i] <- 0
+  }
+}
+    
+unlink("nne_prediction_2.csv")
+    writecsvData <- prediction
+    writecsvData <- cbind(ID = 1:nrow(writecsvData), writecsvData)
+
+    write.csv(writecsvData,"nne_prediction_2.csv", append = FALSE, quote = TRUE, sep = ",",
+              eol = "\n", na = "NA", dec = ".", row.names = FALSE,
+              col.names = TRUE, qmethod = c("escape", "double"),
+              fileEncoding = "")    
+
+prediction
+```
+
+### Grafische Darstellung der Vorhersage ohne Warengruppe 6 ###
+```{r}
+
+ggplot(prediction) +
+  geom_bar( aes(x=Warengruppe, y=Umsatz_predicted), stat="identity", fill="forestgreen", alpha=0.5)
+```
+### Grafische Darstellung der beiden Vorhersage-Modelle ###
+```{r}
+nne_prediction <- read_csv("nne_prediction_2.csv")
+svm_prediction <- read_csv("svm_prediction_2.csv")
+
+plot_prediction <- svm_prediction
+plot_prediction = rename(plot_prediction, Umsatz_SVM = Umsatz_predicted)
+
+plot_prediction$Umsatz_NNE <- nne_prediction$Umsatz_predicted
+plot_prediction$Umsatz_NNE
+
+str(plot_prediction)
+
+df1 <- data.frame(Warengruppe=rep(svm_prediction$Warengruppe),
+                 Methode=rep('Umsatz_SVM'),
+                 Umsatz=svm_prediction$Umsatz_predicted)
+
+df2 <- data.frame(Warengruppe=rep(nne_prediction$Warengruppe),
+                 Methode=rep('Umsatz_NNE'),
+                 Umsatz=nne_prediction$Umsatz_predicted)
+
+dft <- rbind(df1,df2)
+
+
+dft <- dft[order(dft$Warengruppe),]
+
+ggplot(dft, aes(fill=Warengruppe, y=Umsatz, x=Methode)) +
+  geom_bar(position='dodge', stat='identity')
+
+
+ggplot(dft, aes(fill=Methode, y=Umsatz, x=Warengruppe)) +
+  geom_bar(position='dodge', stat='identity') +
+  ggtitle('Vorhergesagte Umsätze') +
+  xlab('Warengruppen') +
+  ylab('Umsatz') +
+  scale_fill_manual('Methode', values=c('coral2','steelblue'))
+```
+
+### Grafische Darstellung der beiden Vorhersage-Modelle ###
+```{r}
+ggplot(plot_prediction) +
+  geom_bar( aes(x=Warengruppe, y=Umsatz_SVM), stat="identity", fill="blue", alpha=0.5) +
+  geom_bar( aes(x=Warengruppe, y=Umsatz_NNE), stat="identity", fill="green", alpha=0.5)
+```
+
+
+
+
+
+
+
