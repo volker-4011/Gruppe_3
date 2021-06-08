@@ -25,11 +25,13 @@ source("prep_environment.R")
 
 # Import der Daten
 
-#if(!file.exists("fullData.csv")){
-#  source("prep_data.R")
-#}
-source("prep_data.R")
-testData <- read_csv("fullData.csv")
+if(!file.exists("fullData.csv")){
+  source("prep_data.R")
+}else{
+  testData <- read_csv("fullData.csv")
+}
+#source("prep_data.R")
+#testData <- read_csv("fullData.csv")
 
 
 #str(testData)
@@ -82,7 +84,7 @@ wochentag_dummies = c("Wochentag_Dienstag","Wochentag_Donnerstag","Wochentag_Fre
 warengruppe_dummies = c("Warengruppe_Broetchen","Warengruppe_Brot","Warengruppe_Crossaint","Warengruppe_Konditorei"
                         ,"Warengruppe_Kuchen","Warengruppe_Saisonbrot")
 bewoelkung_dummies = c("Bewoelkung_0","Bewoelkung_1","Bewoelkung_2","Bewoelkung_3","Bewoelkung_4","Bewoelkung_5"
-                       ,"Bewoelkung_6","Bewoelkung_7","Bewoelkung_8","Bewoelkung_NA")
+                       ,"Bewoelkung_6","Bewoelkung_7","Bewoelkung_8")
 
 windgeschwindigkeit_dummies = c("Windgeschwindigkeit_frische_Briese","Windgeschwindigkeit_leichte_Briese","Windgeschwindigkeit_maessige_Briese", 
                                 "Windgeschwindigkeit_schwache_Briese", "Windgeschwindigkeit_Windstille", "Windgeschwindigkeit_NA")

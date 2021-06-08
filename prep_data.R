@@ -472,6 +472,16 @@ fullData_dummy = dummy_cols(fullData, dummy_list)
 
 newData <- rbind(fullData_dummy[fullData_dummy$Datum == newDay, ])
 
+########################Für Python/Tenser 
+unlink("fullData.csv")
+writecsvData <- fullData
+writecsvData <- cbind(ID = 1:nrow(writecsvData), writecsvData)
+
+write.csv(writecsvData,"fullData.csv", append = FALSE, quote = TRUE, sep = ",",
+          eol = "\n", na = "NA", dec = ".", row.names = FALSE,
+          col.names = TRUE, qmethod = c("escape", "double"),
+          fileEncoding = "")
+
 #Löschen der Daten für den Tag, der vorhergesagt werden soll aus den Trainingsdaten
 fullData <- subset(fullData, Datum != newDay)
 fullData_dummy <- subset(fullData_dummy, Datum != newDay)
@@ -482,14 +492,6 @@ fullData_dummy[is.na(fullData_dummy)] <- 0
 newData[is.na(newData)] <- 0
 
 
-########################Für Python/Tenser 
-unlink("fullData.csv")
-writecsvData <- fullData
-writecsvData <- cbind(ID = 1:nrow(writecsvData), writecsvData)
 
-write.csv(writecsvData,"fullData.csv", append = FALSE, quote = TRUE, sep = ",",
-          eol = "\n", na = "NA", dec = ".", row.names = FALSE,
-          col.names = TRUE, qmethod = c("escape", "double"),
-          fileEncoding = "")
 
 ####################################################################################################################################
