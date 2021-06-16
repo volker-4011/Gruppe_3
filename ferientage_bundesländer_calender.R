@@ -143,5 +143,4 @@ write.csv(ferientage_bundeslaender,"data/ferientage_bundeslaender_wikicalender.c
           eol = "\n", na = "NA", dec = ".", row.names = FALSE,
           col.names = TRUE, qmethod = c("escape", "double"),
           fileEncoding = "")
-
 }

@@ -17,16 +17,11 @@ umsatzdaten <- read_csv(umsatzdaten_source)
 wetter <- read_csv(wetter_source)
 kiwo <- read_csv(kiwo_source)
 wetter_dwd <- read_delim(wetter_dwd_source, delim = ";")
-
+#Laden der Ferien und Feiertage aus den jeweiligen Dateien
 source("https://raw.githubusercontent.com/volker-4011/Gruppe_3/main/ferientage.R", encoding = "UTF-8")
 source("https://raw.githubusercontent.com/volker-4011/Gruppe_3/main/feiertage.R", encoding = "UTF-8")
 
 #####################################################
-
-
-
-
-
 
 #Bearbeiten von wetter_dwd
 wetter_dwd$MESS_DATUM <- as.Date(wetter_dwd$MESS_DATUM, "%d.%m.%Y")
@@ -58,11 +53,6 @@ wetter_dwd$Niederschlagsmenge <- as.numeric(wetter_dwd$Niederschlagsmenge)
 
 
 
-
-
-
-
-
 ####################################
 ####Ausreißer löschen (Silvester und Heiligabend)
 #Für Silvester und Heiligabend in Spalte "helper" 1 eintragen
@@ -77,7 +67,6 @@ for(i in 1:nrow(umsatzdaten)){
 #Silvester und Heiligabend löschen, anschließend Spalte "helper" löschen
 umsatzdaten <- umsatzdaten[umsatzdaten$helper==0, ]
 umsatzdaten$helper <- NULL
-
 
 ###Vorbereitung für die Vorhersage: Zeilen für alle 6 Warengruppen hinzufügen für den ersten Tag, für den keine Umsatzdaten vorhanden sind
 newDay <- max(umsatzdaten$Datum)+1
@@ -152,16 +141,18 @@ for(i in 1:6){
 
 ####################################
 
+
+
 ###Zusammensetzen der Daten
 fullData <- merge(umsatzdaten,wetter, by="Datum", all.x = TRUE)
 fullData <- merge(fullData,kiwo, by="Datum", all.x = TRUE)
 fullData <- merge(fullData,wetter_dwd, by="Datum", all.x = TRUE)
 fullData <- merge(fullData,ferientage, by="Datum", all.x = TRUE)
 fullData <- merge(fullData,feiertage, by="Datum", all.x = TRUE)
+#################################################################
 
-
-
-
+# Eine möglichkeit zur linearen Interpolation. Schreiben einer Funktion hat hier nicht funktioniert
+# daycurrent_value = dayone_value + ((daytwo_value - dayone_value) * ((daycurrent_utc - dayone_utc)/(daytwo_utc - dayone_utc)))'
 dayone_utc = 0
 daytwo_utc = 0
 daycurrent_utc = 0
@@ -202,10 +193,7 @@ for (i in as.numeric(row.names(fullData))){
   }
 }
 
-
-
-
-
+####
 
 dayone_utc = 0
 daytwo_utc = 0
@@ -248,7 +236,7 @@ for (i in as.numeric(row.names(fullData))){
   }
 }
 
-
+####
 
 dayone_utc = 0
 daytwo_utc = 0
@@ -290,6 +278,7 @@ for (i in as.numeric(row.names(fullData))){
   }
 }
 
+####
 
 dayone_utc = 0
 daytwo_utc = 0
@@ -341,11 +330,10 @@ for (i in as.numeric(row.names(fullData))){
   }
 }
 
-
+#Aufteilung in Klassen
 ##################Niederschlagsmenge Kategorisieren
 #Kategorisierung nach eigenem ermessen
 fullData$Niederschlagsmenge[is.na(fullData$Niederschlagsmenge)] <- as.numeric(0) #0 als Standardwert für nicht vorhandene Daten
-
 for (i in as.numeric(row.names(fullData))){
   checkregen <- as.numeric(fullData$Niederschlagsmenge[i])
   
@@ -390,6 +378,8 @@ for (i in as.numeric(row.names(fullData))){
   else if(checkTemp > as.numeric(30)){fullData$Temperatur[i] <- 6} #"Heisser_Tag"
 }
 ##################Temperatur Kategorisieren
+
+####################################################################################################################
 #merge over night stays with "fullData"
 #create column of "Monatscode" for each date of "fullData" to full_join() by "Monatscode"
 #for (e in as.numeric(row.names(fullData))) {
@@ -404,6 +394,7 @@ for (i in as.numeric(row.names(fullData))){
 
 #Windchillfaktor berechnen und hinzufügen (gefühlte Temperatur für unteren Temperaturbereich)
 # fullData$Windchill <- with(fullData, 13.12+0.6215*Temperatur+(0.3965*Temperatur-11.37)*Windgeschwindigkeit^0.16)
+####################################################################################################################
 
 # Warengruppennummer in Warengruppenname uebersetzen
 # 1=Brot, 2=Broetchen, 3=Crossaint, 4=Konditorei, 5=Kuchen, 6=Saisonbrot
@@ -414,18 +405,18 @@ for (e in as.numeric(row.names(fullData)))
 #Extrahieren des Wochentags aus dem Datum und speichern in neuer Variablen
 fullData$Wochentag <- weekdays(fullData$Datum)
 
-#Extrahieren des Monats aus dem Datum und speichern in neuer Variablen
+#Extrahieren des Monats aus dem Datum und speichern als neue Variablen
 fullData$Monat <- month(fullData$Datum)
-
+#Extrahieren des Jahres aus dem Datum und speichern als neue Variablen
 fullData$Jahr <- format(fullData$Datum, "%Y")
 
-#Hinzufügen neue Variable Wochenende
+#Hinzufügen der neuen Variable Wochenende
 fullData$Wochenende <- with(fullData, ifelse(Wochentag=="Sonntag" | Wochentag=="Samstag", 1, 0))
 
 #Dezimalstellen wenig sinvoll, besser Runden
 fullData$Umsatz <- round(fullData$Umsatz)
 
-#Alle NA durch 0 ersetzen in Boolschen Variablen
+#Alle NA durch 0 ersetzen in Boolschen Variablen / Bei JA/NEIN Variablen problemlos
 fullData$KielerWoche[is.na(fullData$KielerWoche)] <- 0 # Alle NA in KielerWoche durch 0 ersetzen
 fullData$Ferien[is.na(fullData$Ferien)] <- 0 #Entweder Ferien oder "nicht = 0"
 fullData$Feiertag[is.na(fullData$Feiertag)] <- 0 #Entweder Feiertag oder "nicht = 0"
@@ -448,13 +439,11 @@ for(i in 1:nrow(fullData)){
 }
 
 
-###Mittlerer umsatz pro Monat und Warengruppe
-
+###Mittlerer Umsatz pro Monat und Warengruppe
 mean_umsatz <- aggregate(fullData[1:(nrow(fullData)-6), 3], list(fullData$Jahr[1:(nrow(fullData)-6)], fullData$Monat[1:(nrow(fullData)-6)], fullData$Warengruppe[1:(nrow(fullData)-6)]), mean)
-
 fullData$Umsatz_mean <- 0
 
-#müsste eigenjtlich ohne warnings durchlaufen...
+#Für jede Zeile Variable füllen
 for(i in 1:nrow(fullData)-6){
   fullData$Umsatz_mean[i] <- mean_umsatz$x[mean_umsatz$Group.1 == fullData$Jahr[i] & mean_umsatz$Group.2 == fullData$Monat[i] & mean_umsatz$Group.3 == fullData$Warengruppe[i]]
 }
@@ -472,7 +461,8 @@ fullData_dummy = dummy_cols(fullData, dummy_list)
 
 newData <- rbind(fullData_dummy[fullData_dummy$Datum == newDay, ])
 
-########################Für Python/Tenser 
+########################Für Python/Tenser NNE
+#eine csv Datei erstellen, zum schnelleren Laden der Variablen
 unlink("fullData.csv")
 writecsvData <- fullData
 writecsvData <- cbind(ID = 1:nrow(writecsvData), writecsvData)
@@ -481,6 +471,7 @@ write.csv(writecsvData,"fullData.csv", append = FALSE, quote = TRUE, sep = ",",
           eol = "\n", na = "NA", dec = ".", row.names = FALSE,
           col.names = TRUE, qmethod = c("escape", "double"),
           fileEncoding = "")
+########################Für Python/Tenser NNE
 
 #Löschen der Daten für den Tag, der vorhergesagt werden soll aus den Trainingsdaten
 fullData <- subset(fullData, Datum != newDay)
@@ -490,8 +481,4 @@ fullData_dummy <- subset(fullData_dummy, Datum != newDay)
 # ist nicht die feine Art, wir müssen uns nochmal genauer um die NAs kümmern.
 fullData_dummy[is.na(fullData_dummy)] <- 0
 newData[is.na(newData)] <- 0
-
-
-
-
 ####################################################################################################################################

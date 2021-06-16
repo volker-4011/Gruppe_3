@@ -2,13 +2,10 @@
 if(file.exists("data/ferientage_bundeslaender_webseite.csv")){
   ferientage_bundeslaender <- read_csv("data/ferientage_bundeslaender_webseite.csv")
 }else{
-  
   dir.create("data/", recursive = TRUE)
-
-# Import libraries
+#Importieren der Libaries
 source("prep_environment.R")
-# Import libraries
-
+#Importieren der Libaries
 #Verbindungszeit erhöhen
 options(timeout= 4000000)
 #Laden der Projektdatei
@@ -17,9 +14,7 @@ umsatzdaten_ferien <- read_csv("https://raw.githubusercontent.com/opencampus-sh/
 cleanFun <- function(htmlString) {
   return(gsub("<.*?>", "", htmlString))
 }
-
 #Herausfiltern aller Jahre im Datensatz:
-
 #Nur das Jahr mit substr(x, start, stop)
 #substr(umsatzdaten$Datum, start, stop)
 #z.B. 2013-07-01  
@@ -29,7 +24,6 @@ allYears <- unique(substr(umsatzdaten_ferien$Datum, 1, 4))
 #allYears <- c("2013")
 #print(allYears)
 #Ausgabe: [1] "2013" "2014" "2015" "2016" "2017" "2018" "2019"
-
 #Erzeugt leeres Dataframe
 ferientage <- data.frame(matrix(ncol = 4, nrow = 0))
 #Alle Bundesländer als Vector
@@ -57,6 +51,8 @@ for(b in bundesland){#Durchläuft jedes Bundesland
     test = str_replace_all(test,"Winterferien-","")
     test = str_replace_all(test,"Pfingstferien-","")
     
+    #Überprüfung, ob ein "/" enthält. Wenn ja muss, ein Tag/Zeitraum hinzugefügt werden
+    #Abfrage muss für jeden Abschnitt erfolgen
     pattern <- "Pfingstferien\\s*(.*?)\\s*Sommerferien"
     result <- regmatches(test, regexec(pattern, test))
     result <- result[[1]][2]
@@ -119,37 +115,38 @@ for(b in bundesland){#Durchläuft jedes Bundesland
       }
     
       #Datum wird zu sequenzierung vorbereitet
-      Datum <- strsplit(Datum, split = " Y ") 
-      Datum <-unlist(Datum, use.names=FALSE);
-      Datum <- as.Date(Datum, "%d.%m.%Y")  
- 
+      Datum <- strsplit(Datum, split = " Y ") #Ein Y zur Trennung der Daten für besseres separieren
+      Datum <-unlist(Datum, use.names=FALSE); #Liste umwandeln in ein Vektor
+      Datum <- as.Date(Datum, "%d.%m.%Y") #Deutsches Datumsformat in das englische umwandeln
+      #Jeweilige Bezeichnung wird in den Vektor geschrieben
       Ferien <- characters[k]
-      
+      #Gibt alle Tage/Datumsangaben zwischen den beiden Datumsangaben aus und schreiben es in den Vektor
       if(length(Datum) > 1){
         Datum <- as.Date(as.Date(Datum[1]):as.Date(Datum[2]), origin="1970-01-01")
       }
       Bundesland <- b
       FerienArt <- Ferien
+      #Nachdem die Vektoren vervollständigt wurden, werden sie in das Dataframe gespeichert
       ferientage <- rbind(ferientage,data.frame(Datum,FerienArt,Ferien,Bundesland))
       
       k = k + 1;   
       m = m + 1;   
     }
   }
+  #nicht mehr benötigte Variablen löschen
   remove(characters,Datum,j,k,m,Ferien,numbers,site,test,year_add)
 }
+#nicht mehr benötigte Variablen löschen
 remove(allYears,characters,Datum,j,k,l,m,Ferien,numbers,site,test,year_add,umsatzdaten_ferien,b)
-
+#Das fertige Dataframe kann hier in Bollesche Werte umgewandelt werden
 ferientage$Ferien <- str_replace_all(ferientage$Ferien, "\\(?[a-zA-Z]+\\)?", "1")
-
+#Daten, die über das die benötigte Zeit hinaus gehen können gelöscht werden
 ferientage_bundeslaender <- filter(ferientage, Datum <= "2019-12-31")
-
+#nicht mehr benötigte Variablen löschen
 remove(ferientage)
-
 #Falls nicht vorhanden, um erneutes laden zu vermeiden, als csv speichern
 write.csv(ferientage_bundeslaender,"data/ferientage_bundeslaender_webseite.csv", append = FALSE, quote = TRUE, sep = ",",
           eol = "\n", na = "NA", dec = ".", row.names = FALSE,
           col.names = TRUE, qmethod = c("escape", "double"),
           fileEncoding = "")
-
 }

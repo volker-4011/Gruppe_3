@@ -51,7 +51,7 @@ model_svm <- svm(Umsatz ~
                    Wochentag_Montag + Wochentag_Dienstag + Wochentag_Mittwoch + Wochentag_Donnerstag + Wochentag_Freitag + Wochentag_Samstag + Ferien + Feiertag + Wochenende  + Umsatz_naiv + Umsatz_mean + KielerWoche + Temperatur_1 + Temperatur_2 + Temperatur_3 + Temperatur_4 + Temperatur_5 + Sonnenscheindauer, train_dataset)
 ```
 
-SVM with hyper paramter tuning via grid search and cross validation
+SVM with hyper parameter tuning via grid search and cross validation
 
 ```{r}
 svm_tune <- tune(svm, Umsatz ~ Warengruppe_Brot +Warengruppe_Broetchen +Warengruppe_Crossaint +Warengruppe_Konditorei + Warengruppe_Kuchen +
@@ -180,19 +180,21 @@ for (i in 1:nrow(prediction)){
     prediction$Umsatz_predicted[i] <- 0
   }
 }
-    
+#Speichern der Umsätze als CSV    
 unlink("svm_prediction_2.csv")
     writecsvData <- prediction
     writecsvData <- cbind(ID = 1:nrow(writecsvData), writecsvData)
     write.csv(writecsvData,"svm_prediction_2.csv", append = FALSE, quote = TRUE, sep = ",",
               eol = "\n", na = "NA", dec = ".", row.names = FALSE,
               col.names = TRUE, qmethod = c("escape", "double"),
-              fileEncoding = "")    
+              fileEncoding = "")   
+#Ausgabe der Ergebnisse    
 prediction
 ```
 
 
 ```{r}
+#Visualisierung der Daten
 ggplot(prediction) +
   geom_bar( aes(x=Warengruppe, y=Umsatz_predicted), stat="identity", fill="forestgreen", alpha=0.5)
 ```

@@ -1,12 +1,9 @@
 ###################################################
 ### Preparation of the Environment ####
-
 # Clear environment
 remove(list = ls())
-
 # Create list with needed libraries
 pkgs <- c("readr", "fastDummies")
-
 # Load each listed library and check if it is installed and install if necessary
 for (pkg in pkgs) {
   if (!require(pkg, character.only = TRUE)) {
@@ -14,53 +11,27 @@ for (pkg in pkgs) {
     library(pkg, character.only = TRUE)
   }
 }
-
-
 ###################################################
 ### Data Import ####
 
 # Reading the data file
 # Importing Function Packages
 source("prep_environment.R")
-
-# Import der Daten
-
+# Import der Daten.Falls vorhanden, die csv laden
 if(!file.exists("fullData.csv")){
   source("prep_data.R")
 }else{
   testData <- read_csv("fullData.csv")
 }
-#source("prep_data.R")
-#testData <- read_csv("fullData.csv")
-
-
 #str(testData)
-
-
 #########################
-
 ###Vorbereiten des Dataframe für die Vorhersage
-
 #Dummy Encoden der Variablen für die Vorhersage
-
 dummy_list <- c("Monat", "Wochentag", "Warengruppe" , "Bewoelkung", "Windgeschwindigkeit", "Temperatur", "Niederschlagsmenge")
 fullData_dummy = dummy_cols(testData, dummy_list)
 
-
-#names(fullData_dummy)
-
-#deleteColumns <- data.frame(x=2, y=4:7, z=9:11, a=4)
-#fullData_dummy <- subset (fullData_dummy, select = -c(15:16))
-#fullData_dummy <- subset (fullData_dummy, select = -c(10:12))
-#fullData_dummy <- subset (fullData_dummy, select = -c(5:8))
-#fullData_dummy <- subset (fullData_dummy, select = -c(3))
-
-
-
-colnames(fullData_dummy)
-
-
-
+#colnames(fullData_dummy)
+#Entfernen unnötiger Variablen
 fullData_dummy[ , c('Wettercode',
                 'Relative_Feuchte',
                 'Sonnenscheindauer',
@@ -68,15 +39,13 @@ fullData_dummy[ , c('Wettercode',
                 'Wochentag', 
                 'Windgeschwindigkeit'
 )] <- list(NULL)
-
 ###################################################
 ### Data Preparation ####
-
 # Recoding of the variables into one-hot encoded (dummy) variables
 #dummy_list <- c("view", "condition")
 #house_pricing_dummy = dummy_cols(house_pricing, dummy_list)
-
 # Definition of lists for each one-hot encoded variable (just to make the handling easier)
+#Vorbereiten der Dummy-Listen
 monat_dummies = c("Monat_1","Monat_2","Monat_3","Monat_4","Monat_5","Monat_6","Monat_7",
                  "Monat_8","Monat_9","Monat_10","Monat_11","Monat_12")
 wochentag_dummies = c("Wochentag_Dienstag","Wochentag_Donnerstag","Wochentag_Freitag",
@@ -93,8 +62,7 @@ temperatur_dummies = c("Temperatur_Eisig","Temperatur_Fruehling","Temperatur_Hei
                        "Temperatur_Vegetationstag","Temperatur_NA")
 
 niederschlag_dummies = c("Niederschlagsmenge_1","Niederschlagsmenge_2","Niederschlagsmenge_3","Niederschlagsmenge_4","Niederschlagsmenge_5")
-
-
+#Alternativ, um Fehlern vorzubeugen
 #Spalten in numerische Zahlen umwandeln
 for(i in 1:ncol(fullData_dummy)) {       # for-loop over columns
   columnType <- typeof(fullData_dummy[ , i])
@@ -103,17 +71,10 @@ for(i in 1:ncol(fullData_dummy)) {       # for-loop over columns
     fullData_dummy[ , i] <- as.double(fullData_dummy[ , i])
   }
 }
-
-
-
+########################
 # Look at the data
-str(fullData_dummy)
-
-colnames(fullData_dummy)
-
-
-
-
+#str(fullData_dummy)
+#colnames(fullData_dummy)
 
 ###################################################
 ### Selection of the Feature Variables and the Label Variable ####
@@ -126,7 +87,6 @@ features <- c('Ferien', 'Feiertag','Wochenende', 'KielerWoche',bewoelkung_dummie
               wochentag_dummies, warengruppe_dummies)
 # Selection of the label (the dependent variable)
 labels <- 'Umsatz'
-
 
 ###################################################
 ### Selection of Training, Validation and Test Data ####
@@ -141,22 +101,15 @@ set.seed(1)
 new_row_order <- sample(nrow(fullData_dummy))
 fullData_dummy <- fullData_dummy[new_row_order, ]
 
-
-# alle NAs durch 0 ersetzen, damit die svm läuft
+# Alle NAs durch 0 ersetzen, damit das Programm läuft
 # ist nicht die feine Art, wir müssen uns nochmal genauer um die NAs kümmern.
 fullData_dummy[is.na(fullData_dummy)] <- 0
-
+#Das neue Datum separieren
 newData <- rbind(fullData_dummy[fullData_dummy$Datum == "2019-06-07", ])
-
+#Das neue Datum separieren
 fullData_dummy <- rbind(fullData_dummy[fullData_dummy$Datum != "2019-06-07", ])
 #Löschen der Daten für den Tag, der vorhergesagt werden soll aus den Trainingsdaten
 fullData_dummy <- subset(fullData_dummy, Datum != "2019-06-07")
-
-
-
-
-
-
 
 # Assign each row number in the full dataset randomly to one of the three groups of datasets
 # The probability of being in one of the groups results then in crresponding group sizes
@@ -172,8 +125,3 @@ validation_labels <- fullData_dummy[assignment == 2, labels]  # subset house_pri
 
 test_features <- fullData_dummy[assignment == 3, features]   # subset house_pricing to test indices only
 test_labels <- fullData_dummy[assignment == 3, labels]   # subset house_pricing to test indices only
-
-
-
-
-

@@ -107,7 +107,7 @@ model = tf.keras.models.load_model("python_model.h5")
 ### Auswertung der Schätzergebnisse ###
 ```{r}
 
-# Schätzung der (normierten) Preise für die Trainings- und Testdaten
+# Schätzung der (normierten) Umsätze für die Trainings- und Testdaten
 training_predictions <- py$model$predict(training_features)
 validation_predictions <- py$model$predict(validation_features)
 # Vergleich der Gütekriterien für die Traingings- und Testdaten
@@ -129,7 +129,7 @@ ggplot(data_train[1:100,]) +
   scale_colour_manual( values = c("Predicted Values"="blue", "Actual Values"="red") ) +
   labs(title="Predicted and Actual Values for the Training Data") +
   xlab("Case Number") +
-  ylab("Price in 1.000 USD") 
+  ylab("Umsätze") 
 # Plot der Ergebnisse der Validierungsdaten
 ggplot(data_test[1:100,]) +
   geom_line( aes(x=1:length(prediction), y=prediction, colour = "Predicted Values" )) +
@@ -137,7 +137,7 @@ ggplot(data_test[1:100,]) +
   scale_colour_manual( values = c("Predicted Values"="blue", "Actual Values"="red") ) +
   labs(title="Predicted and Actual Values for the Test Data") +
   xlab("Case Number") +
-  ylab("Price in 1.000 USD") 
+  ylab("Umsätze") 
 ```
 
 ### Vorhersage für einen einzelnen Fall ###
@@ -148,12 +148,12 @@ cat(paste0("\nTatsächlicher Umsatz:\t", validation_labels[[1]][100]))
 
 ### Vorbereiten der Daten zur Vorhersage
 ```{r}
-#Sortieren nach ID
+#Sortieren nach ID, damit die Ausgabe nach Reihenfolge der Warengruppen erfolgt
 newData <- newData[order(newData$ID),]
-colnamesPred <- colnames(validation_features)
-validation_features2 <- newData[colnamesPred]
+colnamesPred <- colnames(validation_features) #Spalten nach Vorlage der validation_features anpassen
+validation_features2 <- newData[colnamesPred] #Spalten nach Vorlage der validation_features anpassen
 
-validation_features2
+validation_features2 #Einsicht der 6 Zeilen
 
 #colnamesPred2 <- colnames(training_features)
 #training_features2 <- newData[colnamesPred2]
@@ -164,17 +164,16 @@ validation_features2
 ### Auswertung der Schätzergebnisse mit Warengruppe 6 ###
 ```{r}
 
-# Schätzung der (normierten) Preise für die Trainings- und Testdaten
+# Schätzung der (normierten) Umsätze für den neuen Tag über alle Warengruppen
 Umsatz_predicted <- py$model$predict(validation_features2)
 
-prediction <- data.frame(Umsatz_predicted)
-prediction$Warengruppe <- newData$Warengruppe
+#Dataframe zur Visualisierung ergänzen
+prediction <- data.frame(Umsatz_predicted) 
+prediction$Warengruppe <- newData$Warengruppe 
 prediction$Datum <- newData$Datum
 prediction$Monat <- newData$Monat
 
-
-
-
+#Als CSV speichern
 unlink("nne_prediction_1.csv")
     writecsvData <- prediction
     writecsvData <- cbind(ID = 1:nrow(writecsvData), writecsvData)
@@ -183,14 +182,14 @@ unlink("nne_prediction_1.csv")
               eol = "\n", na = "NA", dec = ".", row.names = FALSE,
               col.names = TRUE, qmethod = c("escape", "double"),
               fileEncoding = "")
-
+#Einsicht der Ergebnisse
 prediction
 
 
 ```
 ### Grafische Darstellung der Vorhersage mit Warengruppe 6 ###
 ```{r}
-
+#Einfacher Bar-Plot, zur Darstellung der Umsätze über die Warengruppen 
 ggplot(prediction) +
   geom_bar( aes(x=Warengruppe, y=Umsatz_predicted), stat="identity", fill="forestgreen", alpha=0.5)
 ```
@@ -205,7 +204,7 @@ for (i in 1:nrow(prediction)){
     prediction$Umsatz_predicted[i] <- 0
   }
 }
-    
+#Speichern der Vorhergesagten Umsätze als CSV    
 unlink("nne_prediction_2.csv")
     writecsvData <- prediction
     writecsvData <- cbind(ID = 1:nrow(writecsvData), writecsvData)
@@ -214,13 +213,13 @@ unlink("nne_prediction_2.csv")
               eol = "\n", na = "NA", dec = ".", row.names = FALSE,
               col.names = TRUE, qmethod = c("escape", "double"),
               fileEncoding = "")    
-
+#Einsicht der Ergebnisse
 prediction
 ```
 
 ### Grafische Darstellung der Vorhersage ohne Warengruppe 6 ###
 ```{r}
-
+#Einfacher Bar-Plot, zur Darstellung der Umsätze über die Warengruppen 
 ggplot(prediction) +
   geom_bar( aes(x=Warengruppe, y=Umsatz_predicted), stat="identity", fill="forestgreen", alpha=0.5)
 ```
@@ -231,17 +230,20 @@ ggplot(prediction) +
 
 ### Grafische Darstellung der beiden Vorhersage-Modelle ###
 ```{r}
+#Laden der Ergebnisse der beiden Vorhersagemethoden
 nne_prediction <- read_csv("nne_prediction_2.csv")
 svm_prediction <- read_csv("svm_prediction_2.csv")
-
+####
+#Dataframe bearbeiten
 plot_prediction <- svm_prediction
 plot_prediction = rename(plot_prediction, Umsatz_SVM = Umsatz_predicted)
-
+#
 plot_prediction$Umsatz_NNE <- nne_prediction$Umsatz_predicted
 plot_prediction$Umsatz_NNE
+####
+#str(plot_prediction)
 
-str(plot_prediction)
-
+#Zusammensetzen der Dataframes
 df1 <- data.frame(Warengruppe=rep(svm_prediction$Warengruppe),
                  Methode=rep('Umsatz_SVM'),
                  Umsatz=svm_prediction$Umsatz_predicted)
@@ -251,14 +253,13 @@ df2 <- data.frame(Warengruppe=rep(nne_prediction$Warengruppe),
                  Umsatz=nne_prediction$Umsatz_predicted)
 
 dft <- rbind(df1,df2)
-
-
+##############################
+#Sortieren des Dataframes nach Warengruppen
 dft <- dft[order(dft$Warengruppe),]
-
+#Barplot der Ergebnisse separiert
 ggplot(dft, aes(fill=Warengruppe, y=Umsatz, x=Methode)) +
   geom_bar(position='dodge', stat='identity')
-
-
+#Barplot der Ergebnisse nebeneinander
 ggplot(dft, aes(fill=Methode, y=Umsatz, x=Warengruppe)) +
   geom_bar(position='dodge', stat='identity') +
   ggtitle('Vorhergesagte Umsätze') +
@@ -269,14 +270,8 @@ ggplot(dft, aes(fill=Methode, y=Umsatz, x=Warengruppe)) +
 
 ### Grafische Darstellung der beiden Vorhersage-Modelle ###
 ```{r}
+#Alternaives Barplot
 ggplot(plot_prediction) +
   geom_bar( aes(x=Warengruppe, y=Umsatz_SVM), stat="identity", fill="blue", alpha=0.5) +
   geom_bar( aes(x=Warengruppe, y=Umsatz_NNE), stat="identity", fill="green", alpha=0.5)
 ```
-
-
-
-
-
-
-
