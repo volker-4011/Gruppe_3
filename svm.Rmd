@@ -44,7 +44,6 @@ colnames(fullData_dummy)
 
 ```{r echo=FALSE}
 # Optimization of an SVM with standard hyper parameters
-# Durch die dummy Variablen sind es viele Variablen.
 model_svm <- svm(Umsatz ~ 
                    Warengruppe_Brot +Warengruppe_Broetchen +Warengruppe_Crossaint +Warengruppe_Konditorei + Warengruppe_Kuchen +
                    Monat_1 + Monat_2 + Monat_3 + Monat_4 + Monat_5 + Monat_6 + Monat_7 + Monat_8 + Monat_9 + Monat_10 + Monat_11 +
@@ -148,6 +147,7 @@ ggplot(test_dataset)+
 ```
 
 ### New Data
+# Prediction for the next day
 
 SVM with a standard hyperparameters
 ```{r}

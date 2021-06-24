@@ -55,7 +55,7 @@ wetter_dwd$Niederschlagsmenge <- as.numeric(wetter_dwd$Niederschlagsmenge)
 
 ####################################
 ####Ausreißer löschen (Silvester und Heiligabend)
-#Für Silvester und Heiligabend in Spalte "helper" 1 eintragen
+#Für Silvester und Heiligabend in Spalte "helper" eintragen
 umsatzdaten$helper <- 0
 for(i in 1:nrow(umsatzdaten)){
   if((format(umsatzdaten$Datum[i], "%d/%m") == "24/12") | (format(umsatzdaten$Datum[i], "%d/%m") == "31/12")){
@@ -151,8 +151,11 @@ fullData <- merge(fullData,ferientage, by="Datum", all.x = TRUE)
 fullData <- merge(fullData,feiertage, by="Datum", all.x = TRUE)
 #################################################################
 
+##### Lineare Interpolation zum Ersetzen von NAs
 # Eine möglichkeit zur linearen Interpolation. Schreiben einer Funktion hat hier nicht funktioniert
 # daycurrent_value = dayone_value + ((daytwo_value - dayone_value) * ((daycurrent_utc - dayone_utc)/(daytwo_utc - dayone_utc)))'
+
+## Lineare Interpolation Bewölkung
 dayone_utc = 0
 daytwo_utc = 0
 daycurrent_utc = 0
@@ -194,7 +197,7 @@ for (i in as.numeric(row.names(fullData))){
 }
 
 ####
-
+## Lineare Interpolation Temperatur
 dayone_utc = 0
 daytwo_utc = 0
 daycurrent_utc = 0
@@ -237,7 +240,7 @@ for (i in as.numeric(row.names(fullData))){
 }
 
 ####
-
+## Lineare Interpolation Windgeschwindigkeit
 dayone_utc = 0
 daytwo_utc = 0
 daycurrent_utc = 0
@@ -279,7 +282,7 @@ for (i in as.numeric(row.names(fullData))){
 }
 
 ####
-
+## Lineare Interpolation Niederschlagsmenge
 dayone_utc = 0
 daytwo_utc = 0
 daycurrent_utc = 0
@@ -317,16 +320,6 @@ for (i in as.numeric(row.names(fullData))){
     
     fullData$Niederschlagsmenge[i] <- daycurrent_value
     
-    #print(paste("x1: ",dayone_utc))
-    #print(paste("x2: ",daytwo_utc))
-    #print(paste("xi: ",daycurrent_utc))
-    #print(paste("y1: ",dayone_value))
-    #print(paste("y2: ",daytwo_value))
-    #print(paste("yi: ",daycurrent_value))
-    
-    #print("################################")
-    #print("################################")
-    #print("################################")
   }
 }
 
@@ -407,6 +400,7 @@ fullData$Wochentag <- weekdays(fullData$Datum)
 
 #Extrahieren des Monats aus dem Datum und speichern als neue Variablen
 fullData$Monat <- month(fullData$Datum)
+
 #Extrahieren des Jahres aus dem Datum und speichern als neue Variablen
 fullData$Jahr <- format(fullData$Datum, "%Y")
 
@@ -478,7 +472,7 @@ fullData <- subset(fullData, Datum != newDay)
 fullData_dummy <- subset(fullData_dummy, Datum != newDay)
 
 # alle NAs durch 0 ersetzen, damit die svm läuft
-# ist nicht die feine Art, wir müssen uns nochmal genauer um die NAs kümmern.
+# NAs sind nur in Variablen vorhanden, die nicht zur Vorhersage genutzt werden. NAs in benötigten Variablen, wurden zuvor durch lineare Interpolation bereinigt.
 fullData_dummy[is.na(fullData_dummy)] <- 0
 newData[is.na(newData)] <- 0
 ####################################################################################################################################
